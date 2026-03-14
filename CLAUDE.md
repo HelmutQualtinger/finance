@@ -38,3 +38,11 @@ open chf_usd_monthly_plot.html
 ## Versioning
 - commite alle Änderungen mit `git commit -m "Beschreibung der Änderung"`
 - pushen mit `git push origin main`
+
+# Arbeitsweise
+
+- Führe alle Änderungen direkt aus ohne vorher zu fragen
+- Kein "Soll ich das wirklich tun?" — einfach machen
+- Bei Datei-Operationen: direkt schreiben/löschen
+- Tests nach jeder Änderung automatisch ausführen
+- Nur fragen wenn echte Ambiguität besteht (z.B. zwei komplett verschiedene Lösungsansätze)
