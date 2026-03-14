@@ -2,12 +2,12 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-df = pd.read_csv('chf_usd_monthly.csv', parse_dates=['date'])
+df = pd.read_csv('chf_usd_monthly.csv')
+df['date'] = pd.to_datetime(df['date'])
 
-# Normalize all series to 100 at first common data point
+# Normalize all series to 100 at Jan 1995
 cols = ['USD_CHF', 'USD_EUR', 'USD_XAU', 'USD_SP500TR', 'USD_DAX', 'USD_SMIC']
-df_clean = df.dropna(subset=cols)
-base = df_clean.iloc[0]
+base = df[df['date'].dt.year == 1996].iloc[0]
 base_date = base['date'].strftime('%Y-%m-%d')
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -46,7 +46,7 @@ fig.add_hline(y=100, line_dash="dot", line_color="gray", opacity=0.5)
 fig.update_layout(
     title=f'Monthly Asset Performance (Indexed to 100 at {base_date})',
     xaxis_title='',
-    yaxis_title='Index (100 = Aug 2000)',
+    yaxis_title=f'Index (100 = {base_date})',
     template='plotly_dark',
     hovermode='x unified',
     legend=dict(
