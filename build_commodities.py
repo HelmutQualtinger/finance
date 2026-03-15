@@ -320,6 +320,45 @@ for col_name, configs in price_configs.items():
     print(f"  → {col_name}: {n} quarters")
 
 ###############################################################################
+# 6. Fill 2025+ gaps (World Bank ends Dec 2024)
+###############################################################################
+print("\n=== Adding 2025 commodity data ===")
+
+# Q1 2025 and Q2 2025 prices from IndexMundi/FRED/IMF (USD)
+supplement_usd = {
+    '2025-01': {'brent': 78.19, 'coal': 118.60, 'natgas': 14.76, 'aluminum': 2573.40, 'copper': 8991.41, 'zinc': 2818.96, 'ironore': 99.58},
+    '2025-02': {'brent': 75.19, 'coal': 106.93, 'natgas': 15.38, 'aluminum': 2657.60, 'copper': 9330.60, 'zinc': 2800.14, 'ironore': 105.08},
+    '2025-03': {'brent': 71.74, 'coal': 103.97, 'natgas': 13.16, 'aluminum': 2658.29, 'copper': 9739.68, 'zinc': 2889.29, 'ironore': 100.10},
+    '2025-04': {'brent': 66.93, 'coal': 98.61, 'natgas': 11.57, 'aluminum': 2371.60, 'copper': 9176.80, 'zinc': 2621.55, 'ironore': 97.24},
+    '2025-05': {'brent': 64.09, 'coal': 104.41, 'natgas': 11.62, 'aluminum': 2448.79, 'copper': 9532.98, 'zinc': 2644.37, 'ironore': 96.97},
+    '2025-06': {'brent': 69.85, 'coal': 109.03, 'natgas': 12.30, 'aluminum': 2525.96, 'copper': 9835.07, 'zinc': 2654.65, 'ironore': 92.33},
+}
+supplement_eurusd = {
+    '2025-01': 1.0348, '2025-02': 1.0412, '2025-03': 1.0789,
+    '2025-04': 1.1221, '2025-05': 1.1276, '2025-06': 1.1518,
+}
+
+for month, prices in supplement_usd.items():
+    dt = pd.Timestamp(month + '-01') + pd.offsets.MonthEnd(0)
+    eur_rate = supplement_eurusd[month]
+    if dt not in wb_eur.index:
+        wb_eur.loc[dt] = np.nan
+    wb_eur.loc[dt, 'brent_eur_bbl'] = prices['brent'] / eur_rate
+    wb_eur.loc[dt, 'coal_eur_mt'] = prices['coal'] / eur_rate
+    wb_eur.loc[dt, 'natgas_eur_mmbtu'] = prices['natgas'] / eur_rate
+    wb_eur.loc[dt, 'aluminum_eur_mt'] = prices['aluminum'] / eur_rate
+    wb_eur.loc[dt, 'copper_eur_mt'] = prices['copper'] / eur_rate
+    wb_eur.loc[dt, 'zinc_eur_mt'] = prices['zinc'] / eur_rate
+    wb_eur.loc[dt, 'ironore_eur_dmt'] = prices['ironore'] / eur_rate
+    # Derived
+    wb_eur.loc[dt, 'benzin_eur_l'] = prices['brent'] / eur_rate / 100 + 0.90
+    wb_eur.loc[dt, 'messing_eur_mt'] = 0.6 * prices['copper'] / eur_rate + 0.4 * prices['zinc'] / eur_rate
+    wb_eur.loc[dt, 'stahl_eur_mt'] = prices['ironore'] / eur_rate * 5
+
+wb_eur = wb_eur.sort_index()
+print(f"  Extended to {wb_eur.index.max()}")
+
+###############################################################################
 # 7. Build quarterly output
 ###############################################################################
 print("\n=== Building quarterly CSV ===")
