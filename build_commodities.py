@@ -332,10 +332,25 @@ supplement_usd = {
     '2025-04': {'brent': 66.93, 'coal': 98.61, 'natgas': 11.57, 'aluminum': 2371.60, 'copper': 9176.80, 'zinc': 2621.55, 'ironore': 97.24},
     '2025-05': {'brent': 64.09, 'coal': 104.41, 'natgas': 11.62, 'aluminum': 2448.79, 'copper': 9532.98, 'zinc': 2644.37, 'ironore': 96.97},
     '2025-06': {'brent': 69.85, 'coal': 109.03, 'natgas': 12.30, 'aluminum': 2525.96, 'copper': 9835.07, 'zinc': 2654.65, 'ironore': 92.33},
+    # Q3 2025 (World Bank Pink Sheet Mar 2026)
+    '2025-07': {'brent': 69.00, 'coal': 116.30, 'natgas': 11.47, 'aluminum': 2606, 'copper': 9771, 'zinc': 2763, 'ironore': 101.2},
+    '2025-08': {'brent': 67.87, 'coal': 119.20, 'natgas': 10.98, 'aluminum': 2599, 'copper': 9672, 'zinc': 2790, 'ironore': 103.3},
+    '2025-09': {'brent': 67.99, 'coal': 112.50, 'natgas': 11.00, 'aluminum': 2654, 'copper': 9995, 'zinc': 2937, 'ironore': 106.4},
+    # Q4 2025
+    '2025-10': {'brent': 64.54, 'coal': 111.50, 'natgas': 10.90, 'aluminum': 2793, 'copper': 10740, 'zinc': 3152, 'ironore': 106.9},
+    '2025-11': {'brent': 63.80, 'coal': 115.40, 'natgas': 10.36, 'aluminum': 2819, 'copper': 10812, 'zinc': 3177, 'ironore': 106.2},
+    '2025-12': {'brent': 62.54, 'coal': 115.70, 'natgas': 9.48, 'aluminum': 2876, 'copper': 11791, 'zinc': 3162, 'ironore': 104.6},
+    # Q1 2026 (FRED/WB through Feb, Mar MTD)
+    '2026-01': {'brent': 66.60, 'coal': 109.80, 'natgas': 11.76, 'aluminum': 3134, 'copper': 12987, 'zinc': 3207, 'ironore': 105.5},
+    '2026-02': {'brent': 70.89, 'coal': 118.40, 'natgas': 11.24, 'aluminum': 3065, 'copper': 12951, 'zinc': 3324, 'ironore': 98.8},
+    '2026-03': {'brent': 86.79, 'coal': 134.80, 'natgas': 13.00, 'aluminum': 3387, 'copper': 12884, 'zinc': 3288, 'ironore': 105.0},
 }
 supplement_eurusd = {
     '2025-01': 1.0348, '2025-02': 1.0412, '2025-03': 1.0789,
     '2025-04': 1.1221, '2025-05': 1.1276, '2025-06': 1.1518,
+    '2025-07': 1.1671, '2025-08': 1.1647, '2025-09': 1.1739,
+    '2025-10': 1.1641, '2025-11': 1.1558, '2025-12': 1.1710,
+    '2026-01': 1.1744, '2026-02': 1.1824, '2026-03': 1.1625,
 }
 
 for month, prices in supplement_usd.items():
