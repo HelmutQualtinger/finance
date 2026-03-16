@@ -25,6 +25,14 @@ Quarterly prices since 1990, primarily in EUR, focused on Germany.
 | Food | Brot, Bier, Cola, Milch, Eier, Käse, Schwein, Rind, Hähnchen |
 | Metals | Stahl, Aluminium, Kupfer, Messing (alle EUR/t) |
 
+## 3. Reports
+
+| File | Description |
+|------|-------------|
+| `Gold_vs_Aktien_Bericht.docx` | Vergleichsbericht Gold vs. Aktien |
+| `wetterbericht_schweiz.docx` | Wetterbericht Schweiz |
+| `wetter_rebstein.docx` | Wetterbericht Rebstein |
+
 ## Usage
 
 ```bash

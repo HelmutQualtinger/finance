@@ -8,6 +8,11 @@ Financial data analysis and visualization project with two datasets:
 1. Monthly end-of-month asset prices since 1990 (USD) with interactive Plotly charts
 2. Quarterly commodity and consumer prices since 1990 (EUR, Germany-focused)
 
+### Reports
+- `Gold_vs_Aktien_Bericht.docx` — Vergleichsbericht Gold vs. Aktien
+- `wetterbericht_schweiz.docx` — Wetterbericht Schweiz
+- `wetter_rebstein.docx` — Wetterbericht Rebstein
+
 ## Data
 
 ### Asset Prices (`chf_usd_monthly.csv`)
