@@ -570,7 +570,7 @@ const total = slides.length;
 function showSlide(n) {
   slides.forEach((s, i) => {
     s.classList.remove('active', 'prev');
-    if (i === n) s.classList.add('active');
+    if (i === n) { s.classList.add('active'); s.scrollTop = 0; }
     else if (i < n) s.classList.add('prev');
   });
   dots.forEach((d, i) => d.classList.toggle('active', i === n));
