@@ -8,6 +8,7 @@ Financial data analysis and visualization project with three main areas:
 1. Monthly end-of-month asset prices since 1990 (USD) with interactive Plotly charts
 2. Quarterly commodity and consumer prices since 1990 (EUR, Germany-focused)
 3. UBS Kontoauszug analysis — interactive HTML + PDF reports from CSV and PDF sources
+4. UBS Kreditkarten analysis — interactive HTML + PDF reports from credit card PDF
 
 ### Reports
 - `Gold_vs_Aktien_Bericht.docx` — Vergleichsbericht Gold vs. Aktien
@@ -19,6 +20,13 @@ Financial data analysis and visualization project with three main areas:
 - `build_pdf_analyse.py` — Extrahiert Transaktionen aus PDF-Kontoauszug, generiert `pdf_analyse.html` + `pdf_analyse.pdf`
 - Beide HTML-Berichte: 4 Themes, Jahr-Tabs, SVG-Tortendiagramme, aufklappbare Monatsdetails
 - E-Mail-Versand: Python `smtplib` via `qualcunodue@gmail.com` (App-Passwort in memory)
+
+### UBS Kreditkarten Analyse
+- `build_kreditkarten_analyse.py` — Hardcoded transactions aus `transactions-KreditKarten.pdf` (10 Seiten, 105 Transaktionen, 01.01.2024–21.03.2026)
+- Generiert `kreditkarten_analyse.html` + `kreditkarten_analyse.pdf`
+- HTML: 4 Themes, Jahr-Tabs, SVG-Tortendiagramme, aufklappbare Monatsdetails, PDF-Link im Header
+- PDF: ReportLab A4, matplotlib Tortendiagramme, Gegenpartei-Tabellen pro Jahr
+- Karte 64744 D 001 — Total: Belastung CHF 5'260.92, Gutschrift CHF 5'500.65
 
 ## Data
 
@@ -67,6 +75,10 @@ python3 build_pdf_analyse.py
 # Open analyses in browser
 open ubstrans_analyse.html
 open pdf_analyse.html
+
+# Regenerate Kreditkarten HTML + PDF analysis
+python3 build_kreditkarten_analyse.py
+open kreditkarten_analyse.html
 ```
 
 ## Dependencies
