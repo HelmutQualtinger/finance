@@ -21,6 +21,11 @@ Financial data analysis and visualization project with three main areas:
 - Beide HTML-Berichte: 4 Themes, Jahr-Tabs, SVG-Tortendiagramme, aufklappbare Monatsdetails
 - E-Mail-Versand: Python `smtplib` via `qualcunodue@gmail.com` (App-Passwort in memory)
 
+### Pension Calculator
+- `pension.py` — CLI-Tool: Berechnet Endkapital einer monatlichen Renteneinzahlung mit Zinseszins
+- Aufruf: `python3 pension.py <monatlicher_betrag> <jahreszins_%> <jahre>`
+- Ausgabe: Einzahlungssumme, Zinserträge, Endkapital, Multiplikationsfaktor
+
 ### UBS Kreditkarten Analyse
 - `build_kreditkarten_analyse.py` — Hardcoded transactions aus `transactions-KreditKarten.pdf` (10 Seiten, 105 Transaktionen, 01.01.2024–21.03.2026)
 - Generiert `kreditkarten_analyse.html` + `kreditkarten_analyse.pdf`
