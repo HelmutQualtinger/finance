@@ -388,6 +388,11 @@ function showYear(y){
 }
 """
 
+    pdf_link_css = """
+  .pdf-link{display:inline-flex;align-items:center;padding:.45rem 1rem;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-size:.8rem;font-weight:600;transition:opacity .2s;white-space:nowrap}
+  .pdf-link:hover{opacity:.85}
+"""
+
     ds = date_start[:10].replace('-', '.')
     de = date_end[:10].replace('-', '.')
 
@@ -398,7 +403,7 @@ function showYear(y){
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UBS Kreditkarten-Analyse</title>
 <style>
-{css}
+{css}{pdf_link_css}
 </style>
 </head>
 <body>
@@ -415,6 +420,9 @@ function showYear(y){
       <button class="theme-btn"        data-t="blue"  onclick="setTheme('blue')"  title="Blau"></button>
       <button class="theme-btn"        data-t="green" onclick="setTheme('green')" title="Grün"></button>
     </div>
+    <a href="kreditkarten_analyse.pdf" class="pdf-link" title="PDF öffnen / drucken" download>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-2px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Drucken / PDF
+    </a>
   </div>
 </div>
 <div class="container">
@@ -452,3 +460,180 @@ td_all = round(sum(d for _, _, d, _ in TRANSACTIONS), 2)
 tc_all = round(sum(c for _, _, _, c in TRANSACTIONS), 2)
 print(f"\n  Total: Ausgaben CHF {td_all:,.2f} | Kartenzahlungen CHF {tc_all:,.2f} | Saldo CHF {tc_all-td_all:+,.2f}")
 print("  (PDF-Gesamt: Belastung CHF 5'260.92, Gutschrift CHF 5'500.65)")
+
+# ── PDF generieren ─────────────────────────────────────────────────────────────
+import io, matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
+                                Paragraph, Spacer, HRFlowable, PageBreak, Image)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+
+PDF_OUT = 'kreditkarten_analyse.pdf'
+doc = SimpleDocTemplate(PDF_OUT, pagesize=A4,
+    leftMargin=1.8*cm, rightMargin=1.8*cm, topMargin=1.8*cm, bottomMargin=1.8*cm)
+
+C_DARK   = colors.HexColor('#1e293b')
+C_MUTED  = colors.HexColor('#64748b')
+C_GREEN  = colors.HexColor('#059669')
+C_RED    = colors.HexColor('#dc2626')
+C_ACCENT = colors.HexColor('#2563eb')
+C_ROW    = colors.HexColor('#ffffff')
+C_ROW2   = colors.HexColor('#f8fafc')
+C_BORDER = colors.HexColor('#e2e8f0')
+
+sTitle  = ParagraphStyle('T', fontSize=16, textColor=C_DARK,   spaceAfter=2,  fontName='Helvetica-Bold')
+sSub    = ParagraphStyle('S', fontSize=9,  textColor=C_MUTED,  spaceAfter=10)
+sYear   = ParagraphStyle('Y', fontSize=12, textColor=C_ACCENT, spaceBefore=14, spaceAfter=4, fontName='Helvetica-Bold')
+sFooter = ParagraphStyle('F', fontSize=7,  textColor=C_MUTED,  alignment=TA_CENTER)
+sCell   = ParagraphStyle('C', fontSize=8,  textColor=C_DARK,   fontName='Helvetica')
+
+PDF_COLORS = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6',
+              '#ec4899','#06b6d4','#f97316','#84cc16','#6366f1','#64748b']
+
+def money_pdf(v):
+    if v == 0: return '—'
+    return "CHF {:,.2f}".format(abs(v)).replace(',', "'")
+
+def neg_pdf(v): return '− ' + money_pdf(v) if v else '—'
+
+def make_pie_img(labels, values, title, width_cm=16.0):
+    MAX_SEG = 10
+    pairs = sorted(zip(values, labels), reverse=True)
+    if len(pairs) > MAX_SEG:
+        top = pairs[:MAX_SEG]
+        rest_val = sum(v for v, _ in pairs[MAX_SEG:])
+        top_vals   = [v for v, _ in top] + ([rest_val] if rest_val else [])
+        top_labels = [l for _, l in top] + (['Weitere'] if rest_val else [])
+    else:
+        top_vals   = [v for v, _ in pairs]
+        top_labels = [l for _, l in pairs]
+    total = sum(top_vals)
+    clrs  = PDF_COLORS[:len(top_vals)]
+    legend = ['{} — {} ({:.1f}%)'.format(
+                (l[:32]+'…') if len(l) > 33 else l,
+                "CHF {:,.0f}".format(v).replace(',', "'"),
+                v / total * 100)
+              for l, v in zip(top_labels, top_vals)]
+    fig, ax = plt.subplots(figsize=(9.0, 4.5), facecolor='white')
+    wedges, _ = ax.pie(top_vals, colors=clrs, startangle=90,
+                       wedgeprops=dict(linewidth=0.6, edgecolor='white'))
+    ax.set_title(title, fontsize=11, fontweight='bold', pad=8, color='#1e293b')
+    ax.legend(wedges, legend, loc='center left', bbox_to_anchor=(1.01, 0.5),
+              fontsize=7, frameon=False)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=160, bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+    w = width_cm * cm
+    return Image(buf, width=w, height=w * 0.47)
+
+# Aggregate data for PDF
+years_pdf = sorted(txns_by_year.keys())
+story = []
+
+story.append(Paragraph('UBS Kreditkarten-Analyse', sTitle))
+story.append(Paragraph(
+    f'Karte 64744 D 001  ·  01.01.2024–21.03.2026  ·  {len(TRANSACTIONS)} Transaktionen',
+    sSub))
+story.append(HRFlowable(width='100%', thickness=0.5, color=C_BORDER, spaceAfter=8))
+
+# Summary table
+sum_data = [['Jahr', 'Ausgaben CHF', 'Kartenzahlungen CHF', 'Saldo CHF', 'Buchungen']]
+for yr in years_pdf:
+    txns = txns_by_year[yr]
+    td = round(sum(d for _, _, d, _ in txns), 2)
+    tc = round(sum(c for _, _, _, c in txns), 2)
+    net = tc - td
+    net_s = ('+' if net >= 0 else '−') + ' ' + "{:,.2f}".format(abs(net)).replace(',', "'")
+    sum_data.append([str(yr), neg_pdf(td), money_pdf(tc), net_s, str(len(txns))])
+
+net_all = tc_all - td_all
+net_all_s = ('+' if net_all >= 0 else '−') + ' ' + "{:,.2f}".format(abs(net_all)).replace(',', "'")
+sum_data.append(['Gesamt', neg_pdf(td_all), money_pdf(tc_all), net_all_s, str(len(TRANSACTIONS))])
+
+t = Table(sum_data, colWidths=[2.2*cm, 4.2*cm, 4.2*cm, 4.2*cm, 2.4*cm], repeatRows=1)
+t.setStyle(TableStyle([
+    ('BACKGROUND',     (0,0), (-1,0),  C_ACCENT),
+    ('TEXTCOLOR',      (0,0), (-1,0),  colors.white),
+    ('FONTNAME',       (0,0), (-1,0),  'Helvetica-Bold'),
+    ('FONTSIZE',       (0,0), (-1,-1), 8),
+    ('ALIGN',          (1,0), (-1,-1), 'RIGHT'),
+    ('ALIGN',          (0,0), (0,-1),  'LEFT'),
+    ('ROWBACKGROUNDS', (0,1), (-1,-2), [C_ROW, C_ROW2]),
+    ('BACKGROUND',     (0,-1),(-1,-1), colors.HexColor('#dbeafe')),
+    ('FONTNAME',       (0,-1),(-1,-1), 'Helvetica-Bold'),
+    ('GRID',           (0,0), (-1,-1), 0.3, C_BORDER),
+    ('TOPPADDING',     (0,0), (-1,-1), 4),
+    ('BOTTOMPADDING',  (0,0), (-1,-1), 4),
+    ('TEXTCOLOR',      (1,1), (1,-2),  C_RED),
+    ('TEXTCOLOR',      (2,1), (2,-2),  C_GREEN),
+]))
+story.append(t)
+story.append(Spacer(1, 14))
+
+# Per-year pages
+for yr in years_pdf:
+    story.append(PageBreak())
+    story.append(Paragraph(str(yr), sYear))
+    story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=6))
+
+    txns = txns_by_year[yr]
+    cp_d = collections.defaultdict(float)
+    cp_c = collections.defaultdict(float)
+    cp_n = collections.defaultdict(int)
+    for _, cp, d, c in txns:
+        cp_d[cp] += d; cp_c[cp] += c; cp_n[cp] += 1
+
+    cp_list = sorted(cp_d.keys(), key=lambda cp: cp_d[cp], reverse=True)
+    exp_items = [(cp, cp_d[cp]) for cp in cp_list if cp_d[cp] > 0 and cp != 'LSV-Zahlung']
+
+    if exp_items:
+        story.append(make_pie_img(
+            [l for l, _ in exp_items], [v for _, v in exp_items],
+            f'Ausgaben {yr} nach Gegenpartei'))
+        story.append(Spacer(1, 10))
+
+    story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=4))
+
+    rows = [['Gegenpartei', 'N', 'Ausgaben CHF', 'Einnahmen CHF', 'Netto CHF']]
+    net_styles = []
+    for i, cp in enumerate(cp_list, 1):
+        d  = round(cp_d[cp], 2)
+        cr = round(cp_c[cp], 2)
+        net = cr - d
+        net_s = ('+' if net >= 0 else '−') + ' ' + "{:,.2f}".format(abs(net)).replace(',', "'")
+        rows.append([Paragraph(cp, sCell), str(cp_n[cp]),
+                     neg_pdf(d), money_pdf(cr) if cr else '—', net_s])
+        net_styles.append(('TEXTCOLOR', (4,i), (4,i), C_GREEN if net >= 0 else C_RED))
+
+    tbl = Table(rows, colWidths=[7.5*cm, 1*cm, 3.3*cm, 3.3*cm, 3.3*cm], repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0),  colors.HexColor('#334155')),
+        ('TEXTCOLOR',      (0,0), (-1,0),  colors.white),
+        ('FONTNAME',       (0,0), (-1,0),  'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,-1), 7.5),
+        ('ALIGN',          (1,0), (-1,-1), 'RIGHT'),
+        ('ALIGN',          (0,0), (0,-1),  'LEFT'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [C_ROW, C_ROW2]),
+        ('GRID',           (0,0), (-1,-1), 0.3, C_BORDER),
+        ('TOPPADDING',     (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING',  (0,0), (-1,-1), 3),
+        ('TEXTCOLOR',      (2,1), (2,-1),  C_RED),
+        ('TEXTCOLOR',      (3,1), (3,-1),  C_GREEN),
+        *net_styles,
+    ]))
+    story.append(tbl)
+
+story.append(Spacer(1, 20))
+story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=4))
+story.append(Paragraph('Generiert aus UBS Kreditkarten-Transaktionen · 01.01.2024–21.03.2026', sFooter))
+
+doc.build(story)
+print(f'\nPDF: {PDF_OUT}')
