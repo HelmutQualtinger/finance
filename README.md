@@ -76,13 +76,49 @@ Interactive HTML + PDF report from UBS credit card statement (2024–2026).
 |------|-------------|
 | `pension.py` | Zinseszins-Rechner für monatliche Sparraten |
 
-## 7. Reports
+## 7. Wettervorhersagen
+
+Static 16-Tage-HTML-Berichte, erstellt im März 2026. Datenquellen:
+
+- **Open-Meteo** (`open-meteo.com`) — Freie Wetter-API, kein API-Key nötig, koordinatenbasiert
+- **SRF Meteo** (`srf.ch/meteo`) — Schweizer Rundfunk, für Schweizer Berichte
+
+| File | Ort | Koordinaten | Quelle |
+|------|-----|-------------|--------|
+| `wetter_ffb.html` | Fürstenfeldbruck, DE | 48.18°N, 11.24°E | Open-Meteo |
+| `wettervorhersage_ottakring.html` | Wien Ottakring (16. Bez.), AT | 48.22°N, 16.30°E | Open-Meteo |
+| `wetter_wilhelminenberg_16tage.html` | Wien Wilhelminenberg, AT | 48.22°N, 16.28°E | Open-Meteo |
+| `wetter_schaerding_16tage.html` | Schärding, AT | 48.45°N, 13.43°E | Open-Meteo |
+| `wetter_neudauberg_16tage.html` | Neudauberg, AT | 47.05°N, 16.23°E | Open-Meteo |
+| `wetter_rebstein_16tage.html` | Rebstein, CH | 47.40°N, 9.57°E | Open-Meteo |
+| `wetterbericht_schweiz.html` / `.docx` | Schweiz allgemein | — | SRF Meteo |
+| `wetter_rebstein.html` / `.docx` | Rebstein, CH | — | SRF Meteo |
+
+**Format:** Responsive HTML-Tabelle mit Emoji-Wettericons, Foto-Banner (Wikimedia Commons), tägliche Spalten: Max/Min-Temperatur, Niederschlag (mm), Windgeschwindigkeit (km/h), Regenwahrscheinlichkeit (%) mit Balkenanzeige.
+
+**Erstellung:** Die HTML-Berichte wurden mit Claude Code auf Basis von Open-Meteo-Daten (koordinatenbasierter API-Abruf) bzw. SRF-Meteo-Daten als statische Seiten generiert — keine Python-Scripts, direkt als HTML produziert.
+
+## 8. Reports
 
 | File | Description |
 |------|-------------|
 | `Gold_vs_Aktien_Bericht.docx` | Vergleichsbericht Gold vs. Aktien |
 | `wetterbericht_schweiz.docx` | Wetterbericht Schweiz |
 | `wetter_rebstein.docx` | Wetterbericht Rebstein |
+
+## 9. Playwright / JS Tools
+
+| File | Description |
+|------|-------------|
+| `download_conan.js` | Playwright-Script: lädt das Conan-Filmplakat in 2000px von Wikipedia herunter |
+| `playwright.config.js` | Playwright-Konfiguration (Chromium, headless) |
+| `tests/example.spec.js` | Basis-Testspezifikation |
+| `package.json` / `package-lock.json` | Node.js-Abhängigkeiten (`@playwright/test`) |
+
+```bash
+# Conan-Bild herunterladen
+node download_conan.js
+```
 
 ## Usage
 
