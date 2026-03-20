@@ -775,3 +775,175 @@ if __name__ == '__main__':
         netto = y['total_credit'] - y['total_debit']
         print(f"  {yr}: {y['count']:3d} Txn | Einnahmen {chf(y['total_credit'])} | "
               f"Ausgaben {chf(y['total_debit'])} | Netto {'+' if netto>=0 else ''}{chf(netto)}")
+
+    # ── PDF generieren ────────────────────────────────────────────────────────
+    import io, matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
+                                    Paragraph, Spacer, HRFlowable, PageBreak, Image)
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+
+    PDF_OUT = '/Users/haraldbeker/finance/pdf_analyse.pdf'
+    doc = SimpleDocTemplate(PDF_OUT, pagesize=A4,
+        leftMargin=1.8*cm, rightMargin=1.8*cm, topMargin=1.8*cm, bottomMargin=1.8*cm)
+
+    C_DARK   = colors.HexColor('#1e293b')
+    C_MUTED  = colors.HexColor('#64748b')
+    C_GREEN  = colors.HexColor('#059669')
+    C_RED    = colors.HexColor('#dc2626')
+    C_ACCENT = colors.HexColor('#2563eb')
+    C_ROW    = colors.HexColor('#ffffff')
+    C_ROW2   = colors.HexColor('#f8fafc')
+    C_BORDER = colors.HexColor('#e2e8f0')
+
+    sTitle  = ParagraphStyle('T',  fontSize=16, textColor=C_DARK,   spaceAfter=2,  fontName='Helvetica-Bold')
+    sSub    = ParagraphStyle('S',  fontSize=9,  textColor=C_MUTED,  spaceAfter=10)
+    sYear   = ParagraphStyle('Y',  fontSize=12, textColor=C_ACCENT, spaceBefore=14, spaceAfter=4, fontName='Helvetica-Bold')
+    sFooter = ParagraphStyle('F',  fontSize=7,  textColor=C_MUTED,  alignment=TA_CENTER)
+    sCell   = ParagraphStyle('C',  fontSize=8,  textColor=C_DARK,   fontName='Helvetica')
+
+    PIE_COLORS = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6',
+                  '#06b6d4','#f97316','#ec4899','#84cc16','#6366f1','#64748b']
+
+    def money_pdf(v):
+        if v == 0: return '—'
+        return "CHF {:,.2f}".format(abs(v)).replace(',', "'")
+
+    def neg_pdf(v): return '− ' + money_pdf(v) if v else '—'
+
+    def make_pie_img(labels, values, title, width_cm=8.2):
+        MAX_SEG = 10
+        pairs = sorted(zip(values, labels), reverse=True)
+        if len(pairs) > MAX_SEG:
+            top = pairs[:MAX_SEG]
+            rest_val = sum(v for v, _ in pairs[MAX_SEG:])
+            top_vals   = [v for v, _ in top] + ([rest_val] if rest_val else [])
+            top_labels = [l for _, l in top] + (['Weitere'] if rest_val else [])
+        else:
+            top_vals   = [v for v, _ in pairs]
+            top_labels = [l for _, l in pairs]
+        total  = sum(top_vals)
+        clrs   = PIE_COLORS[:len(top_vals)]
+        legend = ['{} — {} ({:.1f}%)'.format(
+                    (l[:28]+'…') if len(l)>29 else l,
+                    "CHF {:,.0f}".format(v).replace(',', "'"),
+                    v/total*100)
+                  for l, v in zip(top_labels, top_vals)]
+        fig, ax = plt.subplots(figsize=(6.5, 3.8), facecolor='white')
+        wedges, _ = ax.pie(top_vals, colors=clrs, startangle=90,
+                           wedgeprops=dict(linewidth=0.6, edgecolor='white'))
+        ax.set_title(title, fontsize=11, fontweight='bold', pad=8, color='#1e293b')
+        ax.legend(wedges, legend, loc='center left', bbox_to_anchor=(1.01, 0.5),
+                  fontsize=6.5, frameon=False)
+        plt.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', dpi=160, bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+        w = width_cm * cm
+        return Image(buf, width=w, height=w * 0.55)
+
+    story = []
+    total_txn = sum(y['count'] for y in years_data.values())
+    tot_in  = sum(y['total_credit'] for y in years_data.values())
+    tot_out = sum(y['total_debit']  for y in years_data.values())
+    tot_net = tot_in - tot_out
+
+    story.append(Paragraph('UBS Privatkonto – Gesamtübersicht', sTitle))
+    story.append(Paragraph(
+        'CH65 0022 5225 8077 6105 B  ·  03.01.2024–02.03.2026  ·  {} Transaktionen'.format(total_txn),
+        sSub))
+    story.append(HRFlowable(width='100%', thickness=0.5, color=C_BORDER, spaceAfter=8))
+
+    # Jahresübersicht
+    sum_data = [['Jahr', 'Einnahmen CHF', 'Ausgaben CHF', 'Netto CHF', 'Buchungen']]
+    for yr in sorted(years_data.keys()):
+        y = years_data[yr]
+        net = y['total_credit'] - y['total_debit']
+        net_s = ('+' if net >= 0 else '−') + ' ' + "{:,.2f}".format(abs(net)).replace(',', "'")
+        sum_data.append([str(yr), money_pdf(y['total_credit']), neg_pdf(y['total_debit']), net_s, str(y['count'])])
+    net_s = ('+' if tot_net >= 0 else '−') + ' ' + "{:,.2f}".format(abs(tot_net)).replace(',', "'")
+    sum_data.append(['Gesamt', money_pdf(tot_in), neg_pdf(tot_out), net_s, str(total_txn)])
+
+    t = Table(sum_data, colWidths=[2.2*cm, 4*cm, 4*cm, 4*cm, 2.5*cm], repeatRows=1)
+    t.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0),  C_ACCENT),
+        ('TEXTCOLOR',      (0,0), (-1,0),  colors.white),
+        ('FONTNAME',       (0,0), (-1,0),  'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,-1), 8),
+        ('ALIGN',          (1,0), (-1,-1), 'RIGHT'),
+        ('ALIGN',          (0,0), (0,-1),  'LEFT'),
+        ('ROWBACKGROUNDS', (0,1), (-1,-2), [C_ROW, C_ROW2]),
+        ('BACKGROUND',     (0,-1),(-1,-1), colors.HexColor('#dbeafe')),
+        ('FONTNAME',       (0,-1),(-1,-1), 'Helvetica-Bold'),
+        ('GRID',           (0,0), (-1,-1), 0.3, C_BORDER),
+        ('TOPPADDING',     (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING',  (0,0), (-1,-1), 4),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 14))
+
+    # Pro Jahr
+    for yr in sorted(years_data.keys()):
+        story.append(PageBreak())
+        story.append(Paragraph(str(yr), sYear))
+        story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=6))
+
+        cps = years_data[yr]['counterparties']
+        cp_list = sorted(cps.items(), key=lambda x: x[1]['debit'], reverse=True)
+
+        out_items = [(cp, d['debit'])   for cp, d in cp_list if d['debit']  > 0]
+        in_items  = [(cp, d['credit'])  for cp, d in cp_list if d['credit'] > 0]
+
+        charts = []
+        if out_items:
+            charts.append(make_pie_img([l for l,_ in out_items], [v for _,v in out_items], f'Ausgaben {yr}'))
+        if in_items:
+            charts.append(make_pie_img([l for l,_ in in_items],  [v for _,v in in_items],  f'Einnahmen {yr}'))
+        if len(charts) == 2:
+            story.append(Table([[charts[0], charts[1]]], colWidths=[9*cm, 9*cm]))
+        elif charts:
+            story.append(charts[0])
+
+        story.append(Spacer(1, 10))
+        story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=4))
+
+        rows = [['Gegenpartei', 'N', 'Ausgaben CHF', 'Einnahmen CHF', 'Netto CHF']]
+        net_styles = []
+        for i, (cp, d) in enumerate(cp_list, 1):
+            net = d['credit'] - d['debit']
+            net_s = ('+' if net >= 0 else '−') + ' ' + "{:,.2f}".format(abs(net)).replace(',', "'")
+            rows.append([Paragraph(cp, sCell), str(d['count']),
+                         neg_pdf(d['debit']), money_pdf(d['credit']) if d['credit'] else '—', net_s])
+            net_styles.append(('TEXTCOLOR', (4,i), (4,i), C_GREEN if net >= 0 else C_RED))
+
+        tbl = Table(rows, colWidths=[7.5*cm, 1*cm, 3.3*cm, 3.3*cm, 3.3*cm], repeatRows=1)
+        tbl.setStyle(TableStyle([
+            ('BACKGROUND',     (0,0), (-1,0),  colors.HexColor('#334155')),
+            ('TEXTCOLOR',      (0,0), (-1,0),  colors.white),
+            ('FONTNAME',       (0,0), (-1,0),  'Helvetica-Bold'),
+            ('FONTSIZE',       (0,0), (-1,-1), 7.5),
+            ('ALIGN',          (1,0), (-1,-1), 'RIGHT'),
+            ('ALIGN',          (0,0), (0,-1),  'LEFT'),
+            ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [C_ROW, C_ROW2]),
+            ('GRID',           (0,0), (-1,-1), 0.3, C_BORDER),
+            ('TOPPADDING',     (0,0), (-1,-1), 3),
+            ('BOTTOMPADDING',  (0,0), (-1,-1), 3),
+            ('TEXTCOLOR',      (2,1), (2,-1),  C_RED),
+            ('TEXTCOLOR',      (3,1), (3,-1),  C_GREEN),
+            *net_styles,
+        ]))
+        story.append(tbl)
+
+    story.append(Spacer(1, 20))
+    story.append(HRFlowable(width='100%', thickness=0.3, color=C_BORDER, spaceAfter=4))
+    story.append(Paragraph('Generiert aus UBS Kontoauszug PDF · Eigenüberträge ausgeblendet', sFooter))
+
+    doc.build(story)
+    print(f'PDF: {PDF_OUT}')
