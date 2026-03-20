@@ -15,6 +15,23 @@ Financial data analysis and visualization project with three main areas:
 - `wetterbericht_schweiz.docx` — Wetterbericht Schweiz
 - `wetter_rebstein.docx` — Wetterbericht Rebstein
 
+### Wetterberichte (16-Tage-Vorhersagen)
+Statische HTML-Dateien mit 16-Tage-Wettervorhersagen, generiert von Claude auf Anfrage.
+Datenquelle: Open-Meteo.com (kostenloses Wetter-API, kein Key nötig).
+Format: Tabelle mit Tag, Wetterlage (Emoji), Max/Min-Temperatur, Niederschlag, Windstärke.
+
+Standorte:
+- `wetter_rebstein_16tage.html` — Rebstein SG, Schweiz (47.4°N, 9.57°E)
+- `wetter_rebstein.html` — Rebstein SG (älterer Bericht)
+- `wetterbericht_schweiz.html` — Schweiz (allgemein)
+- `wetter_ffb.html` — Fürstenfeldbruck, Bayern
+- `wettervorhersage_ottakring.html` — Ottakring, Wien
+- `wetter_schaerding_16tage.html` — Schärding, Oberösterreich
+- `wetter_neudauberg_16tage.html` — Neudauberg
+- `wetter_wilhelminenberg_16tage.html` — Wien Wilhelminenberg
+
+Docx-Berichte: `wetterbericht_schweiz.docx`, `wetter_rebstein.docx`
+
 ### UBS Kontoauszug Analyse
 - `analyze_ubs.py` — Parst `ubstrans.csv`, generiert `ubstrans_analyse.html` + `ubstrans_analyse.pdf`
 - `build_pdf_analyse.py` — Extrahiert Transaktionen aus PDF-Kontoauszug, generiert `pdf_analyse.html` + `pdf_analyse.pdf`
