@@ -14,7 +14,7 @@ def main():
         print("Error: amount and interest must be numbers, years must be an integer.")
         sys.exit(1)
 
-    monthly_rate = annual_rate / 100 / 12
+    monthly_rate = (1 + annual_rate / 100) ** (1 / 12) - 1
     n = years * 12
 
     if monthly_rate == 0:

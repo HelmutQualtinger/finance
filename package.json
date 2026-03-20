@@ -1,0 +1,25 @@
+{
+  "name": "finance",
+  "version": "1.0.0",
+  "description": "Two datasets tracking financial assets and commodity/consumer prices, with interactive Plotly charts.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HelmutQualtinger/finance.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HelmutQualtinger/finance/issues"
+  },
+  "homepage": "https://github.com/HelmutQualtinger/finance#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}
