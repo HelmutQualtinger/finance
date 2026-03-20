@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UBS Kreditkarten-Analyse</title>
+<style>
+
+  [data-theme="dark"]  { --bg:#0f1117;--bg2:#1a1f35;--border:#2d3748;--border2:#1e2a3a;--text:#e2e8f0;--text2:#cbd5e1;--muted:#94a3b8;--faint:#64748b;--thead:#0f1117;--detail-bg:#0f1117;--bar-bg:#0f1117;--accent:#3b82f6;--hover:rgba(59,130,246,0.06);--h1:#fff;--input-bg:#1a1f35; }
+  [data-theme="light"] { --bg:#f1f5f9;--bg2:#ffffff;--border:#e2e8f0;--border2:#e2e8f0;--text:#1e293b;--text2:#334155;--muted:#64748b;--faint:#94a3b8;--thead:#f8fafc;--detail-bg:#f1f5f9;--bar-bg:#e2e8f0;--accent:#2563eb;--hover:rgba(37,99,235,0.05);--h1:#0f172a;--input-bg:#ffffff; }
+  [data-theme="blue"]  { --bg:#0a1628;--bg2:#0f2040;--border:#1e3a5f;--border2:#162e4d;--text:#e2f0ff;--text2:#bcd6f5;--muted:#7aa8d8;--faint:#4e7aa8;--thead:#071120;--detail-bg:#071120;--bar-bg:#071120;--accent:#38bdf8;--hover:rgba(56,189,248,0.07);--h1:#fff;--input-bg:#0f2040; }
+  [data-theme="green"] { --bg:#071612;--bg2:#0d2318;--border:#1a4030;--border2:#122e22;--text:#d1fae5;--text2:#a7f3d0;--muted:#6ee7b7;--faint:#34d399;--thead:#051009;--detail-bg:#051009;--bar-bg:#051009;--accent:#10b981;--hover:rgba(16,185,129,0.07);--h1:#ecfdf5;--input-bg:#0d2318; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
+  .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.5rem 2rem}
+  .header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+  .header h1{font-size:1.6rem;font-weight:700;color:var(--h1)}
+  .header p{color:var(--muted);margin-top:.3rem;font-size:.875rem}
+  .theme-switcher{display:flex;gap:.4rem;align-items:center}
+  .theme-switcher span{font-size:.75rem;color:var(--faint);margin-right:.3rem}
+  .theme-btn{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .2s,transform .15s}
+  .theme-btn:hover{transform:scale(1.15)}
+  .theme-btn.active{border-color:var(--text)}
+  .theme-btn[data-t="dark"] {background:linear-gradient(135deg,#0f1117 50%,#1a1f35 50%)}
+  .theme-btn[data-t="light"]{background:linear-gradient(135deg,#f1f5f9 50%,#e2e8f0 50%);border-color:#cbd5e1}
+  .theme-btn[data-t="blue"] {background:linear-gradient(135deg,#0a1628 50%,#38bdf8 50%)}
+  .theme-btn[data-t="green"]{background:linear-gradient(135deg,#071612 50%,#10b981 50%)}
+  .container{max-width:1400px;margin:0 auto;padding:1.5rem 2rem}
+  .tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+  .tab{padding:.5rem 1.2rem;border-radius:20px;cursor:pointer;font-size:.85rem;font-weight:600;border:1px solid var(--border);background:var(--bg2);color:var(--muted);transition:all .2s}
+  .tab:hover{color:var(--text);border-color:var(--accent)}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem}
+  .card-label{font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+  .card-value{font-size:1.4rem;font-weight:700}
+  .card-value.green{color:#10b981}.card-value.red{color:#ef4444}.card-value.blue{color:var(--accent)}.card-value.neutral{color:var(--text)}
+  .section{display:none}.section.active{display:block}
+  .table-wrapper{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:1rem}
+  table{width:100%;border-collapse:collapse}
+  thead{background:var(--thead)}
+  th{padding:.45rem 1rem;text-align:left;font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+  th.right{text-align:right}
+  tbody tr{border-top:1px solid var(--border2);transition:background .15s}
+  tbody tr:hover{background:var(--hover)}
+  td{padding:.35rem 1rem;font-size:.875rem}
+  td.right{text-align:right;font-variant-numeric:tabular-nums}
+  td.cp-name{font-weight:500;color:var(--text2);max-width:280px}
+  td.count{color:var(--muted)}
+  td.debit{color:#ef4444}td.credit{color:#10b981}
+  td.net-pos{color:#10b981;font-weight:600}td.net-neg{color:#ef4444;font-weight:600}
+  td.bar-cell{width:120px}
+  .bar-wrap{background:var(--bar-bg);border-radius:4px;height:8px;overflow:hidden}
+  .bar{height:8px;border-radius:4px}
+  .bar.debit-bar{background:#ef4444}.bar.credit-bar{background:#10b981}
+  details{cursor:pointer}
+  details summary{list-style:none;display:inline}
+  details summary::-webkit-details-marker{display:none}
+  details[open] .expand-arrow{display:none}
+  .expand-arrow{color:var(--faint);font-size:.75rem;margin-left:4px;user-select:none}
+  .detail-inner{background:var(--detail-bg);padding:.75rem 1rem .75rem 2rem}
+  .detail-inner table{font-size:.8rem}
+  .detail-inner th{font-size:.7rem}
+  .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;margin-left:4px}
+  .tag.income{background:rgba(16,185,129,.15);color:#10b981}
+  .tag.expense{background:rgba(239,68,68,.15);color:#ef4444}
+  .tag.mixed{background:rgba(59,130,246,.15);color:#3b82f6}
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+  .chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem}
+  .chart-box h3{font-size:.8rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8rem}
+  @media(max-width:700px){.charts-row{grid-template-columns:1fr}.header-inner{flex-direction:column;align-items:flex-start}}
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner" style="gap:0.8rem;">
+    <div>
+      <h1>UBS Kreditkarten-Analyse</h1>
+      <p>Karte 64744 D 001 &mdash; Zeitraum 2024.02.21&ndash;2026.03.15 &mdash; 105 Transaktionen</p>
+    </div>
+    <div class="theme-switcher">
+      <span>Thema:</span>
+      <button class="theme-btn active" data-t="dark"  onclick="setTheme('dark')"  title="Dunkel"></button>
+      <button class="theme-btn"        data-t="light" onclick="setTheme('light')" title="Hell"></button>
+      <button class="theme-btn"        data-t="blue"  onclick="setTheme('blue')"  title="Blau"></button>
+      <button class="theme-btn"        data-t="green" onclick="setTheme('green')" title="Grün"></button>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="tabs" id="tabsContainer">
+    <div class="tab active" onclick="showYear(2026)" id="tab-2026">2026</div><div class="tab" onclick="showYear(2025)" id="tab-2025">2025</div><div class="tab" onclick="showYear(2024)" id="tab-2024">2024</div>
+  </div>
+
+<div class="section active" id="year-2026">
+
+  <div class="cards">
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 108.72</div></div>
+    <div class="card"><div class="card-label">Kartenzahlungen</div><div class="card-value green">CHF 107.65</div></div>
+    <div class="card"><div class="card-label">Saldo</div><div class="card-value red">CHF -1.07</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">8</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">5</div></div>
+  </div>
+  <div class="charts-row" style="grid-template-columns:1fr;">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:200px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 154.92 136.75 L 128.95 118.05 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Google Cloud: CHF 37.98 (34.9%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Google Cloud</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">34.9%</text><path d="M 154.92 136.75 A 80 80 0 0 1 38.54 151.25 L 59.12 126.75 A 48 48 0 0 0 128.95 118.05 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Google One: CHF 28.47 (26.2%)</title></path><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Google One</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">26.2%</text><path d="M 38.54 151.25 A 80 80 0 0 1 16.79 57.75 L 46.07 70.65 A 48 48 0 0 0 59.12 126.75 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Anthropic: CHF 22.27 (20.5%)</title></path><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Anthropic</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">20.5%</text><path d="M 16.79 57.75 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 46.07 70.65 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>ALDI mobile: CHF 20.00 (18.4%)</title></path><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">ALDI mobile</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">18.4%</text></svg></div>
+  </div>
+  <div class="table-wrapper">
+  <table id="table-2026">
+    <thead><tr><th>Gegenpartei</th><th class="right">Anzahl</th><th class="right">Ausgaben (CHF)</th><th class="right">Einnahmen (CHF)</th><th class="right">Netto (CHF)</th><th class="right">Ausgaben</th></tr></thead>
+    <tbody>
+      <tr class="cp-row" data-cp="google cloud">
+        <td class="cp-name"><details><summary>Google Cloud<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2026-01</td><td class="right debit">-37.98</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-37.98</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-37.98</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="google one">
+        <td class="cp-name"><details><summary>Google One<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2026-01</td><td class="right debit">-9.65</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2026-02</td><td class="right debit">-9.46</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2026-03</td><td class="right debit">-9.36</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-28.47</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-28.47</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:74%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="anthropic">
+        <td class="cp-name"><details><summary>Anthropic<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2026-01</td><td class="right debit">-22.27</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-22.27</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-22.27</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:58%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="aldi mobile">
+        <td class="cp-name"><details><summary>ALDI mobile<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2026-01</td><td class="right debit">-20.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-20.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-20.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:52%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="lsv-zahlung">
+        <td class="cp-name"><details><summary>LSV-Zahlung<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2026-01</td><td class="right debit"></td><td class="right credit">78.00</td><td>1 Buchg.</td></tr><tr><td>2026-02</td><td class="right debit"></td><td class="right credit">29.65</td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">—</td>
+        <td class="right credit">107.65</td>
+        <td class="right net-pos">+107.65</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div><div class="section" id="year-2025">
+
+  <div class="cards">
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 3'005.51</div></div>
+    <div class="card"><div class="card-label">Kartenzahlungen</div><div class="card-value green">CHF 2'987.80</div></div>
+    <div class="card"><div class="card-label">Saldo</div><div class="card-value red">CHF -17.71</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">52</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">24</div></div>
+  </div>
+  <div class="charts-row" style="grid-template-columns:1fr;">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 212" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:212px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 154.03 137.96 L 128.42 118.78 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Apotheke zur Sonne: CHF 1'058.90 (35.2%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Apotheke zur Sonne</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">35.2%</text><path d="M 154.03 137.96 A 80 80 0 0 1 16.70 122.06 L 46.02 109.24 A 48 48 0 0 0 128.42 118.78 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Apple.com/CHDE: CHF 998.00 (33.2%)</title></path><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Apple.com/CHDE</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">33.2%</text><path d="M 16.70 122.06 A 80 80 0 0 1 10.49 81.12 L 42.30 84.67 A 48 48 0 0 0 46.02 109.24 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>ALDI Süd Lindau: CHF 250.46 (8.3%)</title></path><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">ALDI Süd Lindau</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">8.3%</text><path d="M 10.49 81.12 A 80 80 0 0 1 18.40 54.31 L 47.04 68.58 A 48 48 0 0 0 42.30 84.67 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Pizolbahnen AG: CHF 168.00 (5.6%)</title></path><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Pizolbahnen AG</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">5.6%</text><path d="M 18.40 54.31 A 80 80 0 0 1 31.38 35.56 L 54.83 57.34 A 48 48 0 0 0 47.04 68.58 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Interspar Filiale: CHF 136.77 (4.6%)</title></path><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Interspar Filiale</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">4.6%</text><path d="M 31.38 35.56 A 80 80 0 0 1 42.60 25.55 L 61.56 51.33 A 48 48 0 0 0 54.83 57.34 Z" fill="#ec4899" stroke="var(--bg2)" stroke-width="1.5"><title>Anthropic: CHF 90.07 (3.0%)</title></path><rect x="196" y="124" width="10" height="10" rx="2" fill="#ec4899"/><text x="210" y="133" font-size="10" fill="var(--text2)">Anthropic</text><text x="336" y="133" font-size="9.5" fill="var(--muted)" text-anchor="end">3.0%</text><path d="M 42.60 25.55 A 80 80 0 0 1 52.38 19.40 L 67.43 47.64 A 48 48 0 0 0 61.56 51.33 Z" fill="#06b6d4" stroke="var(--bg2)" stroke-width="1.5"><title>Temu.com: CHF 69.13 (2.3%)</title></path><rect x="196" y="146" width="10" height="10" rx="2" fill="#06b6d4"/><text x="210" y="155" font-size="10" fill="var(--text2)">Temu.com</text><text x="336" y="155" font-size="9.5" fill="var(--muted)" text-anchor="end">2.3%</text><path d="M 52.38 19.40 A 80 80 0 0 1 62.66 14.82 L 73.60 44.89 A 48 48 0 0 0 67.43 47.64 Z" fill="#f97316" stroke="var(--bg2)" stroke-width="1.5"><title>Manga Quick Restaurant: CHF 67.37 (2.2%)</title></path><rect x="196" y="168" width="10" height="10" rx="2" fill="#f97316"/><text x="210" y="177" font-size="10" fill="var(--text2)">Manga Quick Restaurant</text><text x="336" y="177" font-size="9.5" fill="var(--muted)" text-anchor="end">2.2%</text><path d="M 62.66 14.82 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 73.60 44.89 Z" fill="#64748b" stroke="var(--bg2)" stroke-width="1.5"><title>Sonstige: CHF 166.81 (5.6%)</title></path><rect x="196" y="190" width="10" height="10" rx="2" fill="#64748b"/><text x="210" y="199" font-size="10" fill="var(--text2)">Sonstige</text><text x="336" y="199" font-size="9.5" fill="var(--muted)" text-anchor="end">5.6%</text></svg></div>
+  </div>
+  <div class="table-wrapper">
+  <table id="table-2025">
+    <thead><tr><th>Gegenpartei</th><th class="right">Anzahl</th><th class="right">Ausgaben (CHF)</th><th class="right">Einnahmen (CHF)</th><th class="right">Netto (CHF)</th><th class="right">Ausgaben</th></tr></thead>
+    <tbody>
+      <tr class="cp-row" data-cp="apotheke zur sonne">
+        <td class="cp-name"><details><summary>Apotheke zur Sonne<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-02</td><td class="right debit">-440.25</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-04</td><td class="right debit">-203.55</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-06</td><td class="right debit">-415.10</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-1'058.90</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'058.90</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="apple.com/chde">
+        <td class="cp-name"><details><summary>Apple.com/CHDE<span class="tag mixed">gemischt</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-04</td><td class="right debit"></td><td class="right credit">998.00</td><td>1 Buchg.</td></tr><tr><td>2025-05</td><td class="right debit">-998.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-998.00</td>
+        <td class="right credit">998.00</td>
+        <td class="right net-pos">+0.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:94%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="aldi süd lindau">
+        <td class="cp-name"><details><summary>ALDI Süd Lindau<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-02</td><td class="right debit">-250.46</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-250.46</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-250.46</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:23%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="pizolbahnen ag">
+        <td class="cp-name"><details><summary>Pizolbahnen AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-08</td><td class="right debit">-168.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-168.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-168.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:15%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="interspar filiale">
+        <td class="cp-name"><details><summary>Interspar Filiale<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-03</td><td class="right debit">-136.77</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-136.77</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-136.77</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:12%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="anthropic">
+        <td class="cp-name"><details><summary>Anthropic<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-07</td><td class="right debit">-8.94</td><td class="right credit"></td><td>2 Buchg.</td></tr><tr><td>2025-11</td><td class="right debit">-40.86</td><td class="right credit"></td><td>3 Buchg.</td></tr><tr><td>2025-12</td><td class="right debit">-40.27</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">7</td>
+        <td class="right debit">-90.07</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-90.07</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:8%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="temu.com">
+        <td class="cp-name"><details><summary>Temu.com<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-08</td><td class="right debit">-23.86</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-09</td><td class="right debit">-45.27</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-69.13</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-69.13</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:6%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="manga quick restaurant">
+        <td class="cp-name"><details><summary>Manga Quick Restaurant<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-01</td><td class="right debit">-21.82</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-02</td><td class="right debit">-45.55</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-67.37</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-67.37</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:6%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="kssg campus">
+        <td class="cp-name"><details><summary>KSSG Campus<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-01</td><td class="right debit">-16.40</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-05</td><td class="right debit">-22.60</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-39.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-39.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:3%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *digitec">
+        <td class="cp-name"><details><summary>PayPal *Digitec<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-11</td><td class="right debit">-23.60</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-23.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-23.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="aldi mobile">
+        <td class="cp-name"><details><summary>ALDI mobile<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-01</td><td class="right debit">-20.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-20.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-20.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="olivetano feinkost">
+        <td class="cp-name"><details><summary>Olivetano Feinkost<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-02</td><td class="right debit">-13.58</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-13.58</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-13.58</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="google one">
+        <td class="cp-name"><details><summary>Google One<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-11</td><td class="right debit">-13.48</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-13.48</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-13.48</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *alipay">
+        <td class="cp-name"><details><summary>PayPal *Alipay<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-11</td><td class="right debit">-10.46</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-10.46</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-10.46</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="kssg parking h07a">
+        <td class="cp-name"><details><summary>KSSG Parking H07A<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-03</td><td class="right debit">-3.50</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-05</td><td class="right debit">-2.50</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-10</td><td class="right debit">-4.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-10.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-10.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="google play">
+        <td class="cp-name"><details><summary>Google Play<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-04</td><td class="right debit">-0.95</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-05</td><td class="right debit">-5.84</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2025-11</td><td class="right debit">-1.44</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-8.23</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-8.23</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="caffè sette k2">
+        <td class="cp-name"><details><summary>Caffè Sette K2<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-07</td><td class="right debit">-8.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-8.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-8.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="interspar restaurant">
+        <td class="cp-name"><details><summary>Interspar Restaurant<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-03</td><td class="right debit">-7.33</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-7.33</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-7.33</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="sportplatz bützel">
+        <td class="cp-name"><details><summary>Sportplatz Bützel<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-08</td><td class="right debit">-4.60</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-4.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-4.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="ikea st. gallen">
+        <td class="cp-name"><details><summary>IKEA St. Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-02</td><td class="right debit">-3.95</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-3.95</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-3.95</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="google cloud">
+        <td class="cp-name"><details><summary>Google Cloud<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-12</td><td class="right debit">-2.50</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-2.50</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-2.50</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="selecta merchant">
+        <td class="cp-name"><details><summary>Selecta Merchant<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-01</td><td class="right debit">-1.90</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-1.90</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1.90</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="devisenzuschlag 1.75%">
+        <td class="cp-name"><details><summary>Devisenzuschlag 1.75%<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-11</td><td class="right debit">-0.18</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-0.18</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-0.18</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="lsv-zahlung">
+        <td class="cp-name"><details><summary>LSV-Zahlung<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2025-01</td><td class="right debit"></td><td class="right credit">21.90</td><td>1 Buchg.</td></tr><tr><td>2025-02</td><td class="right debit"></td><td class="right credit">609.45</td><td>1 Buchg.</td></tr><tr><td>2025-03</td><td class="right debit"></td><td class="right credit">319.35</td><td>1 Buchg.</td></tr><tr><td>2025-04</td><td class="right debit"></td><td class="right credit">214.40</td><td>1 Buchg.</td></tr><tr><td>2025-05</td><td class="right debit"></td><td class="right credit">26.05</td><td>1 Buchg.</td></tr><tr><td>2025-06</td><td class="right debit"></td><td class="right credit">5.85</td><td>1 Buchg.</td></tr><tr><td>2025-07</td><td class="right debit"></td><td class="right credit">424.05</td><td>1 Buchg.</td></tr><tr><td>2025-08</td><td class="right debit"></td><td class="right credit">12.60</td><td>1 Buchg.</td></tr><tr><td>2025-09</td><td class="right debit"></td><td class="right credit">237.15</td><td>1 Buchg.</td></tr><tr><td>2025-11</td><td class="right debit"></td><td class="right credit">26.95</td><td>1 Buchg.</td></tr><tr><td>2025-12</td><td class="right debit"></td><td class="right credit">92.05</td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">11</td>
+        <td class="right debit">—</td>
+        <td class="right credit">1'989.80</td>
+        <td class="right net-pos">+1'989.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div><div class="section" id="year-2024">
+
+  <div class="cards">
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 2'146.69</div></div>
+    <div class="card"><div class="card-label">Kartenzahlungen</div><div class="card-value green">CHF 2'405.20</div></div>
+    <div class="card"><div class="card-label">Saldo</div><div class="card-value green">CHF +258.51</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">45</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">16</div></div>
+  </div>
+  <div class="charts-row" style="grid-template-columns:1fr;">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 212" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:212px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 154.51 137.31 L 128.71 118.38 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Zentral Apotheke Heerbrugg: CHF 752.85 (35.1%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Zentral Apotheke Heerb…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">35.1%</text><path d="M 154.51 137.31 A 80 80 0 0 1 36.60 149.57 L 57.96 125.74 A 48 48 0 0 0 128.71 118.38 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>PayPal *Digitec: CHF 570.20 (26.6%)</title></path><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">PayPal *Digitec</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">26.6%</text><path d="M 36.60 149.57 A 80 80 0 0 1 11.27 104.22 L 42.76 98.53 A 48 48 0 0 0 57.96 125.74 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Night Inn Hotel Feldkirch: CHF 225.92 (10.5%)</title></path><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Night Inn Hotel Feldki…</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">10.5%</text><path d="M 11.27 104.22 A 80 80 0 0 1 15.47 60.92 L 45.28 72.55 A 48 48 0 0 0 42.76 98.53 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Endokrinologie Altstätten: CHF 188.15 (8.8%)</title></path><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Endokrinologie Altstät…</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">8.8%</text><path d="M 15.47 60.92 A 80 80 0 0 1 39.01 28.36 L 59.41 53.01 A 48 48 0 0 0 45.28 72.55 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Apotheke zur Sonne: CHF 173.45 (8.1%)</title></path><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Apotheke zur Sonne</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">8.1%</text><path d="M 39.01 28.36 A 80 80 0 0 1 54.45 18.33 L 68.67 47.00 A 48 48 0 0 0 59.41 53.01 Z" fill="#ec4899" stroke="var(--bg2)" stroke-width="1.5"><title>PayPal *Trainline: CHF 78.79 (3.7%)</title></path><rect x="196" y="124" width="10" height="10" rx="2" fill="#ec4899"/><text x="210" y="133" font-size="10" fill="var(--text2)">PayPal *Trainline</text><text x="336" y="133" font-size="9.5" fill="var(--muted)" text-anchor="end">3.7%</text><path d="M 54.45 18.33 A 80 80 0 0 1 67.78 13.15 L 76.67 43.89 A 48 48 0 0 0 68.67 47.00 Z" fill="#06b6d4" stroke="var(--bg2)" stroke-width="1.5"><title>Reichelt Electronics: CHF 61.17 (2.8%)</title></path><rect x="196" y="146" width="10" height="10" rx="2" fill="#06b6d4"/><text x="210" y="155" font-size="10" fill="var(--text2)">Reichelt Electronics</text><text x="336" y="155" font-size="9.5" fill="var(--muted)" text-anchor="end">2.8%</text><path d="M 67.78 13.15 A 80 80 0 0 1 72.22 12.00 L 79.33 43.20 A 48 48 0 0 0 76.67 43.89 Z" fill="#f97316" stroke="var(--bg2)" stroke-width="1.5"><title>EasyPark Schweiz: CHF 19.58 (0.9%)</title></path><rect x="196" y="168" width="10" height="10" rx="2" fill="#f97316"/><text x="210" y="177" font-size="10" fill="var(--text2)">EasyPark Schweiz</text><text x="336" y="177" font-size="9.5" fill="var(--muted)" text-anchor="end">0.9%</text><path d="M 72.22 12.00 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 79.33 43.20 Z" fill="#64748b" stroke="var(--bg2)" stroke-width="1.5"><title>Sonstige: CHF 76.58 (3.6%)</title></path><rect x="196" y="190" width="10" height="10" rx="2" fill="#64748b"/><text x="210" y="199" font-size="10" fill="var(--text2)">Sonstige</text><text x="336" y="199" font-size="9.5" fill="var(--muted)" text-anchor="end">3.6%</text></svg></div>
+  </div>
+  <div class="table-wrapper">
+  <table id="table-2024">
+    <thead><tr><th>Gegenpartei</th><th class="right">Anzahl</th><th class="right">Ausgaben (CHF)</th><th class="right">Einnahmen (CHF)</th><th class="right">Netto (CHF)</th><th class="right">Ausgaben</th></tr></thead>
+    <tbody>
+      <tr class="cp-row" data-cp="zentral apotheke heerbrugg">
+        <td class="cp-name"><details><summary>Zentral Apotheke Heerbrugg<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-08</td><td class="right debit">-477.20</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-12</td><td class="right debit">-275.65</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-752.85</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-752.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *digitec">
+        <td class="cp-name"><details><summary>PayPal *Digitec<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-04</td><td class="right debit">-538.60</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-11</td><td class="right debit">-31.60</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-570.20</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-570.20</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:75%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="night inn hotel feldkirch">
+        <td class="cp-name"><details><summary>Night Inn Hotel Feldkirch<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-10</td><td class="right debit">-225.92</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-225.92</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-225.92</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:30%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="endokrinologie altstätten">
+        <td class="cp-name"><details><summary>Endokrinologie Altstätten<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-04</td><td class="right debit">-188.15</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-188.15</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-188.15</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:24%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="apotheke zur sonne">
+        <td class="cp-name"><details><summary>Apotheke zur Sonne<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-02</td><td class="right debit">-173.45</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-173.45</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-173.45</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:23%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *trainline">
+        <td class="cp-name"><details><summary>PayPal *Trainline<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-04</td><td class="right debit">-78.79</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-78.79</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-78.79</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:10%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="reichelt electronics">
+        <td class="cp-name"><details><summary>Reichelt Electronics<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-12</td><td class="right debit">-61.17</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-61.17</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-61.17</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:8%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="easypark schweiz">
+        <td class="cp-name"><details><summary>EasyPark Schweiz<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-08</td><td class="right debit">-3.44</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-10</td><td class="right debit">-8.59</td><td class="right credit"></td><td>4 Buchg.</td></tr><tr><td>2024-11</td><td class="right debit">-7.55</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">7</td>
+        <td class="right debit">-19.58</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-19.58</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *temu">
+        <td class="cp-name"><details><summary>PayPal *Temu<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-07</td><td class="right debit">-12.97</td><td class="right credit"></td><td>3 Buchg.</td></tr><tr><td>2024-09</td><td class="right debit">-4.47</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-17.44</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-17.44</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *wiener linien">
+        <td class="cp-name"><details><summary>PayPal *Wiener Linien<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-08</td><td class="right debit">-16.70</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-16.70</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-16.70</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="aliexpress">
+        <td class="cp-name"><details><summary>AliExpress<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-11</td><td class="right debit">-16.05</td><td class="right credit"></td><td>2 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-16.05</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-16.05</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="aldi mobile">
+        <td class="cp-name"><details><summary>ALDI mobile<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-09</td><td class="right debit">-10.00</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-10.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-10.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="paypal *alipay">
+        <td class="cp-name"><details><summary>PayPal *Alipay<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-02</td><td class="right debit">-9.65</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-9.65</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-9.65</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="devisenzuschlag 1.75%">
+        <td class="cp-name"><details><summary>Devisenzuschlag 1.75%<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-02</td><td class="right debit">-0.17</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-04</td><td class="right debit">-1.38</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-07</td><td class="right debit">-0.23</td><td class="right credit"></td><td>2 Buchg.</td></tr><tr><td>2024-08</td><td class="right debit">-0.29</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-09</td><td class="right debit">-0.08</td><td class="right credit"></td><td>1 Buchg.</td></tr><tr><td>2024-11</td><td class="right debit">-0.28</td><td class="right credit"></td><td>2 Buchg.</td></tr><tr><td>2024-12</td><td class="right debit">-1.07</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">9</td>
+        <td class="right debit">-3.50</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-3.50</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="nyx anker snack vienna">
+        <td class="cp-name"><details><summary>NYX Anker Snack Vienna<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-05</td><td class="right debit">-3.24</td><td class="right credit"></td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-3.24</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-3.24</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>      <tr class="cp-row" data-cp="lsv-zahlung">
+        <td class="cp-name"><details><summary>LSV-Zahlung<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary><div class="detail-inner"><table><thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead><tbody><tr><td>2024-02</td><td class="right debit"></td><td class="right credit">258.50</td><td>1 Buchg.</td></tr><tr><td>2024-03</td><td class="right debit"></td><td class="right credit">183.25</td><td>1 Buchg.</td></tr><tr><td>2024-05</td><td class="right debit"></td><td class="right credit">810.15</td><td>1 Buchg.</td></tr><tr><td>2024-07</td><td class="right debit"></td><td class="right credit">5.60</td><td>1 Buchg.</td></tr><tr><td>2024-08</td><td class="right debit"></td><td class="right credit">505.25</td><td>1 Buchg.</td></tr><tr><td>2024-09</td><td class="right debit"></td><td class="right credit">10.00</td><td>1 Buchg.</td></tr><tr><td>2024-10</td><td class="right debit"></td><td class="right credit">4.55</td><td>1 Buchg.</td></tr><tr><td>2024-11</td><td class="right debit"></td><td class="right credit">247.30</td><td>1 Buchg.</td></tr><tr><td>2024-12</td><td class="right debit"></td><td class="right credit">380.60</td><td>1 Buchg.</td></tr></tbody></table></div></details></td>
+        <td class="right count">9</td>
+        <td class="right debit">—</td>
+        <td class="right credit">2'405.20</td>
+        <td class="right net-pos">+2'405.20</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+</div>
+<script>
+
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+}
+function showYear(y){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('year-'+y).classList.add('active');
+  document.getElementById('tab-'+y).classList.add('active');
+}
+
+</script>
+</body>
+</html>
