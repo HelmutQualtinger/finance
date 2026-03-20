@@ -4,14 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Financial data analysis and visualization project with two datasets:
+Financial data analysis and visualization project with three main areas:
 1. Monthly end-of-month asset prices since 1990 (USD) with interactive Plotly charts
 2. Quarterly commodity and consumer prices since 1990 (EUR, Germany-focused)
+3. UBS Kontoauszug analysis — interactive HTML + PDF reports from CSV and PDF sources
 
 ### Reports
 - `Gold_vs_Aktien_Bericht.docx` — Vergleichsbericht Gold vs. Aktien
 - `wetterbericht_schweiz.docx` — Wetterbericht Schweiz
 - `wetter_rebstein.docx` — Wetterbericht Rebstein
+
+### UBS Kontoauszug Analyse
+- `analyze_ubs.py` — Parst `ubstrans.csv`, generiert `ubstrans_analyse.html` + `ubstrans_analyse.pdf`
+- `build_pdf_analyse.py` — Extrahiert Transaktionen aus PDF-Kontoauszug, generiert `pdf_analyse.html` + `pdf_analyse.pdf`
+- Beide HTML-Berichte: 4 Themes, Jahr-Tabs, SVG-Tortendiagramme, aufklappbare Monatsdetails
+- E-Mail-Versand: Python `smtplib` via `qualcunodue@gmail.com` (App-Passwort in memory)
 
 ## Data
 
@@ -50,11 +57,21 @@ open chf_usd_monthly_plot.html
 
 # Rebuild commodity prices from sources
 python3 build_commodities.py
+
+# Regenerate UBS CSV-based HTML + PDF analysis
+python3 analyze_ubs.py
+
+# Regenerate UBS PDF-based HTML + PDF analysis
+python3 build_pdf_analyse.py
+
+# Open analyses in browser
+open ubstrans_analyse.html
+open pdf_analyse.html
 ```
 
 ## Dependencies
 
-- Python 3 with `pandas`, `plotly`, `numpy`, `openpyxl`
+- Python 3 with `pandas`, `plotly`, `numpy`, `openpyxl`, `reportlab`, `matplotlib`
 - `yfinance` installed but Yahoo API is accessed via `curl` due to SSL issues
 - Use `python3` (not `python`), avoid port 5000 (macOS AirPlay)
 
