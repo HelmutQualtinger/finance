@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UBS Privatkonto Analyse</title>
+<style>
+
+  /* ── Themes via CSS variables ── */
+  [data-theme="dark"] {
+    --bg: #0f1117; --bg2: #1a1f35; --border: #2d3748; --border2: #1e2a3a;
+    --text: #e2e8f0; --text2: #cbd5e1; --muted: #94a3b8; --faint: #64748b;
+    --thead: #0f1117; --detail-bg: #0f1117; --bar-bg: #0f1117;
+    --accent: #3b82f6; --hover: rgba(59,130,246,0.06);
+    --h1: #fff; --input-bg: #1a1f35;
+  }
+  [data-theme="light"] {
+    --bg: #f1f5f9; --bg2: #ffffff; --border: #e2e8f0; --border2: #e2e8f0;
+    --text: #1e293b; --text2: #334155; --muted: #64748b; --faint: #94a3b8;
+    --thead: #f8fafc; --detail-bg: #f1f5f9; --bar-bg: #e2e8f0;
+    --accent: #2563eb; --hover: rgba(37,99,235,0.05);
+    --h1: #0f172a; --input-bg: #ffffff;
+  }
+  [data-theme="blue"] {
+    --bg: #0a1628; --bg2: #0f2040; --border: #1e3a5f; --border2: #162e4d;
+    --text: #e2f0ff; --text2: #bcd6f5; --muted: #7aa8d8; --faint: #4e7aa8;
+    --thead: #071120; --detail-bg: #071120; --bar-bg: #071120;
+    --accent: #38bdf8; --hover: rgba(56,189,248,0.07);
+    --h1: #fff; --input-bg: #0f2040;
+  }
+  [data-theme="green"] {
+    --bg: #071612; --bg2: #0d2318; --border: #1a4030; --border2: #122e22;
+    --text: #d1fae5; --text2: #a7f3d0; --muted: #6ee7b7; --faint: #34d399;
+    --thead: #051009; --detail-bg: #051009; --bar-bg: #051009;
+    --accent: #10b981; --hover: rgba(16,185,129,0.07);
+    --h1: #ecfdf5; --input-bg: #0d2318;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.25s, color 0.25s; }
+  .header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; }
+  .header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .header h1 { font-size: 1.6rem; font-weight: 700; color: var(--h1); }
+  .header p { color: var(--muted); margin-top: 0.3rem; font-size: 0.875rem; }
+
+  /* Theme switcher */
+  .theme-switcher { display: flex; gap: 0.4rem; align-items: center; }
+  .pdf-link { display:inline-flex; align-items:center; padding:0.45rem 1rem;
+    background:var(--accent); color:#fff; border-radius:8px; text-decoration:none;
+    font-size:0.8rem; font-weight:600; transition:opacity 0.2s; white-space:nowrap; }
+  .pdf-link:hover { opacity:0.85; }
+  .theme-switcher span { font-size: 0.75rem; color: var(--faint); margin-right: 0.3rem; }
+  .theme-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+               cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+  .theme-btn:hover { transform: scale(1.15); }
+  .theme-btn.active { border-color: var(--text); }
+  .theme-btn[data-t="dark"]  { background: linear-gradient(135deg, #0f1117 50%, #1a1f35 50%); }
+  .theme-btn[data-t="light"] { background: linear-gradient(135deg, #f1f5f9 50%, #e2e8f0 50%); border-color: #cbd5e1; }
+  .theme-btn[data-t="blue"]  { background: linear-gradient(135deg, #0a1628 50%, #38bdf8 50%); }
+  .theme-btn[data-t="green"] { background: linear-gradient(135deg, #071612 50%, #10b981 50%); }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
+
+  /* Year tabs */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 0.5rem 1.2rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+         border: 1px solid var(--border); background: var(--bg2); color: var(--muted); transition: all 0.2s; }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+  .card-label { font-size: 0.75rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+  .card-value { font-size: 1.4rem; font-weight: 700; }
+  .card-value.green { color: #10b981; }
+  .card-value.red { color: #ef4444; }
+  .card-value.blue { color: var(--accent); }
+  .card-value.neutral { color: var(--text); }
+
+  /* Table */
+  .section { display: none; }
+  .section.active { display: block; }
+  .table-wrapper { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--thead); }
+  th { padding: 0.45rem 1rem; text-align: left; font-size: 0.75rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  th.right { text-align: right; }
+  tbody tr { border-top: 1px solid var(--border2); transition: background 0.15s; }
+  tbody tr:hover { background: var(--hover); }
+  td { padding: 0.35rem 1rem; font-size: 0.875rem; }
+  td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  td.cp-name { font-weight: 500; color: var(--text2); max-width: 280px; }
+  td.count { color: var(--muted); }
+  td.debit { color: #ef4444; }
+  td.credit { color: #10b981; }
+  td.net-pos { color: #10b981; font-weight: 600; }
+  td.net-neg { color: #ef4444; font-weight: 600; }
+  td.bar-cell { width: 120px; }
+  .bar-wrap { background: var(--bar-bg); border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar { height: 8px; border-radius: 4px; }
+  .bar.debit-bar { background: #ef4444; }
+  .bar.credit-bar { background: #10b981; }
+
+  /* Month breakdown (details/summary) */
+  details { cursor: pointer; }
+  details summary { list-style: none; display: inline; }
+  details summary::-webkit-details-marker { display: none; }
+  .expand-arrow { color: var(--faint); font-size: 0.75rem; margin-left: 4px; user-select: none; }
+  .detail-row { display: none; }
+  .detail-row.open { display: table-row; }
+  .detail-inner { background: var(--detail-bg); padding: 0.75rem 1rem 0.75rem 2rem; }
+  .detail-inner table { font-size: 0.8rem; }
+  .detail-inner th { font-size: 0.7rem; }
+
+  .search-bar { margin-bottom: 1rem; }
+  .search-bar input { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+    padding: 0.5rem 1rem; font-size: 0.875rem; width: 300px; outline: none; transition: border-color 0.2s; }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: var(--faint); }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; margin-left: 4px; }
+  .tag.income  { background: rgba(16,185,129,0.15); color: #10b981; }
+  .tag.expense { background: rgba(239,68,68,0.15);  color: #ef4444; }
+  .tag.mixed   { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+
+  /* SVG pie charts */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .chart-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+  .chart-box h3 { font-size: 0.8rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.8rem; }
+
+  @media (max-width: 700px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+  }
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner" style="gap:0.8rem;">
+    <div>
+      <h1>UBS Privatkonto Analyse</h1>
+      <p>CH65 0022 5225 8077 6105 B &mdash; Zeitraum 03.01.2024&ndash;02.03.2026 &mdash; 210 Transaktionen</p>
+    </div>
+    <div class="theme-switcher">
+      <span>Thema:</span>
+      <button class="theme-btn active" data-t="dark"  onclick="setTheme('dark')"  title="Dunkel"></button>
+      <button class="theme-btn"        data-t="light" onclick="setTheme('light')" title="Hell"></button>
+      <button class="theme-btn"        data-t="blue"  onclick="setTheme('blue')"  title="Blau"></button>
+      <button class="theme-btn"        data-t="green" onclick="setTheme('green')" title="Grün"></button>
+    </div>
+    <a href="pdf_analyse.pdf" class="pdf-link" title="PDF öffnen / drucken" download>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-2px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Drucken / PDF
+    </a>
+  </div>
+</div>
+<div class="container">
+  <div class="tabs" id="tabsContainer">
+    <div class="tab active" onclick="showYear(2026)" id="tab-2026">2026</div>
+    <div class="tab" onclick="showYear(2025)" id="tab-2025">2025</div>
+    <div class="tab" onclick="showYear(2024)" id="tab-2024">2024</div>
+  </div>
+
+<div class="section active" id="year-2026">
+  
+  <div class="cards">
+    <div class="card"><div class="card-label">Einnahmen</div><div class="card-value green">CHF 24'147.94</div></div>
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 2'707.15</div></div>
+    <div class="card"><div class="card-label">Netto</div><div class="card-value green">CHF +21'440.79</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">19</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">12</div></div>
+  </div>
+  
+  <div class="charts-row">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 218" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:218px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 167.14 68.79 L 136.28 77.28 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Endokrinologie-Diabetologie Rheintal: CHF 561.20 (20.7%)</title></path><path d="M 167.14 68.79 A 80 80 0 0 1 146.43 146.70 L 123.86 124.02 A 48 48 0 0 0 136.28 77.28 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Strassenverkehrsamt Kanton St. Gallen: CHF 455.00 (16.8%)</title></path><path d="M 146.43 146.70 A 80 80 0 0 1 69.50 167.33 L 77.70 136.40 A 48 48 0 0 0 123.86 124.02 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Apotheke zur Sonne GmbH: CHF 449.05 (16.6%)</title></path><path d="M 69.50 167.33 A 80 80 0 0 1 27.05 139.36 L 52.23 119.62 A 48 48 0 0 0 77.70 136.40 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Gebäudeversicherung St.Gallen: CHF 278.60 (10.3%)</title></path><path d="M 27.05 139.36 A 80 80 0 0 1 10.65 100.17 L 42.39 96.10 A 48 48 0 0 0 52.23 119.62 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>HOCH Health Ostschweiz: CHF 231.60 (8.6%)</title></path><path d="M 10.65 100.17 A 80 80 0 0 1 14.48 63.61 L 44.69 74.17 A 48 48 0 0 0 42.39 96.10 Z" fill="#ec4899" stroke="var(--bg2)" stroke-width="1.5"><title>Gemeindeverwaltung Rebstein: CHF 199.75 (7.4%)</title></path><path d="M 14.48 63.61 A 80 80 0 0 1 29.76 37.36 L 53.86 58.41 A 48 48 0 0 0 44.69 74.17 Z" fill="#06b6d4" stroke="var(--bg2)" stroke-width="1.5"><title>Dr. Risch Ostschweiz AG: CHF 164.60 (6.1%)</title></path><path d="M 29.76 37.36 A 80 80 0 0 1 53.58 18.77 L 68.15 47.26 A 48 48 0 0 0 53.86 58.41 Z" fill="#f97316" stroke="var(--bg2)" stroke-width="1.5"><title>Sunrise GmbH: CHF 163.70 (6.0%)</title></path><path d="M 53.58 18.77 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 68.15 47.26 Z" fill="#64748b" stroke="var(--bg2)" stroke-width="1.5"><title>Sonstige: CHF 203.65 (7.5%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Endokrinologie-Diabet…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">20.7%</text><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Strassenverkehrsamt K…</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">16.8%</text><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Apotheke zur Sonne Gm…</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">16.6%</text><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Gebäudeversicherung S…</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">10.3%</text><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">HOCH Health Ostschweiz</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">8.6%</text><rect x="196" y="124" width="10" height="10" rx="2" fill="#ec4899"/><text x="210" y="133" font-size="10" fill="var(--text2)">Gemeindeverwaltung Re…</text><text x="336" y="133" font-size="9.5" fill="var(--muted)" text-anchor="end">7.4%</text><rect x="196" y="146" width="10" height="10" rx="2" fill="#06b6d4"/><text x="210" y="155" font-size="10" fill="var(--text2)">Dr. Risch Ostschweiz …</text><text x="336" y="155" font-size="9.5" fill="var(--muted)" text-anchor="end">6.1%</text><rect x="196" y="168" width="10" height="10" rx="2" fill="#f97316"/><text x="210" y="177" font-size="10" fill="var(--text2)">Sunrise GmbH</text><text x="336" y="177" font-size="9.5" fill="var(--muted)" text-anchor="end">6.0%</text><rect x="196" y="190" width="10" height="10" rx="2" fill="#64748b"/><text x="210" y="199" font-size="10" fill="var(--text2)">Sonstige</text><text x="336" y="199" font-size="9.5" fill="var(--muted)" text-anchor="end">7.5%</text></svg></div>
+    <div class="chart-box"><h3>Einnahmen nach Gegenpartei</h3><svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:200px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 1 1 90.00 10.00 L 90.00 42.00 A 48 48 0 1 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Europäische Patentorganisation: CHF 24'147.94 (100.0%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Europäische Patentorg…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">100.0%</text></svg></div>
+  </div>
+  
+  <div class="search-bar"><input type="text" placeholder="Gegenpartei suchen..." onkeyup="filterTable(2026, this.value)" id="search-2026"></div>
+  <div class="table-wrapper">
+  <table id="table-2026">
+    <thead>
+      <tr>
+        <th>Gegenpartei</th>
+        <th class="right">Anzahl</th>
+        <th class="right">Ausgaben (CHF)</th>
+        <th class="right">Einnahmen (CHF)</th>
+        <th class="right">Netto (CHF)</th>
+        <th class="right">Ausgaben</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="cp-row" data-cp="endokrinologie-diabetologie rheintal">
+        <td class="cp-name"><details><summary>Endokrinologie-Diabetologie Rheintal<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-561.20</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-561.20</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-0">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-61.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit">-499.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="strassenverkehrsamt kanton st. gallen">
+        <td class="cp-name"><details><summary>Strassenverkehrsamt Kanton St. Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-455.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-455.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:81%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-1">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-14.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-03</td><td class="right debit">-441.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="apotheke zur sonne gmbh">
+        <td class="cp-name"><details><summary>Apotheke zur Sonne GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-449.05</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-449.05</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:80%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-2">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-449.05</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gebäudeversicherung st.gallen">
+        <td class="cp-name"><details><summary>Gebäudeversicherung St.Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-278.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-278.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:49%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-3">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-03</td><td class="right debit">-278.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="hoch health ostschweiz">
+        <td class="cp-name"><details><summary>HOCH Health Ostschweiz<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-231.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-231.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:41%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-4">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-231.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gemeindeverwaltung rebstein">
+        <td class="cp-name"><details><summary>Gemeindeverwaltung Rebstein<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-199.75</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-199.75</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:35%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-5">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-02</td><td class="right debit">-199.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="dr. risch ostschweiz ag">
+        <td class="cp-name"><details><summary>Dr. Risch Ostschweiz AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-164.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-164.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:29%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-6">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-02</td><td class="right debit">-164.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="sunrise gmbh">
+        <td class="cp-name"><details><summary>Sunrise GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-163.70</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-163.70</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:29%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-7">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit">-82.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs card center">
+        <td class="cp-name"><details><summary>UBS Card Center<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-107.65</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-107.65</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:19%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-8">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-78.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit">-29.65</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="arztpraxis knierim">
+        <td class="cp-name"><details><summary>Arztpraxis Knierim<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-66.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-66.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:11%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-9">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-49.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit">-16.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs kontogebühren">
+        <td class="cp-name"><details><summary>UBS Kontogebühren<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-30.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-30.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:5%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-10">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="europäische patentorganisation">
+        <td class="cp-name"><details><summary>Europäische Patentorganisation<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right ">—</td>
+        <td class="right credit">24'147.94</td>
+        <td class="right net-pos">+24'147.94</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2026-11">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2026-01</td><td class="right debit"></td><td class="right credit">13'191.52</td><td>1 Buchg.</td></tr>
+<tr><td>2026-02</td><td class="right debit"></td><td class="right credit">10'956.42</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+<div class="section" id="year-2025">
+  
+  <div class="cards">
+    <div class="card"><div class="card-label">Einnahmen</div><div class="card-value green">CHF 164'999.92</div></div>
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 32'973.10</div></div>
+    <div class="card"><div class="card-label">Netto</div><div class="card-value green">CHF +132'026.82</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">107</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">29</div></div>
+  </div>
+  
+  <div class="charts-row">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 218" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:218px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 148.91 144.13 L 125.35 122.48 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Politische Gemeinde Rebstein: CHF 12'143.00 (36.8%)</title></path><path d="M 148.91 144.13 A 80 80 0 0 1 120.24 164.06 L 108.15 134.44 A 48 48 0 0 0 125.35 122.48 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>UBS Card Center: CHF 2'309.15 (7.0%)</title></path><path d="M 120.24 164.06 A 80 80 0 0 1 88.99 169.99 L 89.39 138.00 A 48 48 0 0 0 108.15 134.44 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Zollgarage Rheintal AG: CHF 2'100.80 (6.4%)</title></path><path d="M 88.99 169.99 A 80 80 0 0 1 60.44 164.34 L 72.27 134.60 A 48 48 0 0 0 89.39 138.00 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Arztpraxis Knierim: CHF 1'919.55 (5.8%)</title></path><path d="M 60.44 164.34 A 80 80 0 0 1 38.86 151.52 L 59.31 126.91 A 48 48 0 0 0 72.27 134.60 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Spitalregion RWS: CHF 1'653.95 (5.0%)</title></path><path d="M 38.86 151.52 A 80 80 0 0 1 22.84 133.47 L 49.70 116.08 A 48 48 0 0 0 59.31 126.91 Z" fill="#ec4899" stroke="var(--bg2)" stroke-width="1.5"><title>Gemeindeverwaltung Rebstein: CHF 1'588.85 (4.8%)</title></path><path d="M 22.84 133.47 A 80 80 0 0 1 13.60 113.74 L 44.16 104.24 A 48 48 0 0 0 49.70 116.08 Z" fill="#06b6d4" stroke="var(--bg2)" stroke-width="1.5"><title>HOCH Health Ostschweiz: CHF 1'433.60 (4.3%)</title></path><path d="M 13.60 113.74 A 80 80 0 0 1 10.09 93.73 L 42.05 92.24 A 48 48 0 0 0 44.16 104.24 Z" fill="#f97316" stroke="var(--bg2)" stroke-width="1.5"><title>Strassenverkehrsamt Kanton St. Gallen: CHF 1'336.00 (4.1%)</title></path><path d="M 10.09 93.73 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 42.05 92.24 Z" fill="#64748b" stroke="var(--bg2)" stroke-width="1.5"><title>Sonstige: CHF 8'488.20 (25.7%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Politische Gemeinde R…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">36.8%</text><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">UBS Card Center</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">7.0%</text><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Zollgarage Rheintal AG</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">6.4%</text><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Arztpraxis Knierim</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">5.8%</text><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Spitalregion RWS</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">5.0%</text><rect x="196" y="124" width="10" height="10" rx="2" fill="#ec4899"/><text x="210" y="133" font-size="10" fill="var(--text2)">Gemeindeverwaltung Re…</text><text x="336" y="133" font-size="9.5" fill="var(--muted)" text-anchor="end">4.8%</text><rect x="196" y="146" width="10" height="10" rx="2" fill="#06b6d4"/><text x="210" y="155" font-size="10" fill="var(--text2)">HOCH Health Ostschweiz</text><text x="336" y="155" font-size="9.5" fill="var(--muted)" text-anchor="end">4.3%</text><rect x="196" y="168" width="10" height="10" rx="2" fill="#f97316"/><text x="210" y="177" font-size="10" fill="var(--text2)">Strassenverkehrsamt K…</text><text x="336" y="177" font-size="9.5" fill="var(--muted)" text-anchor="end">4.1%</text><rect x="196" y="190" width="10" height="10" rx="2" fill="#64748b"/><text x="210" y="199" font-size="10" fill="var(--text2)">Sonstige</text><text x="336" y="199" font-size="9.5" fill="var(--muted)" text-anchor="end">25.7%</text></svg></div>
+    <div class="chart-box"><h3>Einnahmen nach Gegenpartei</h3><svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:200px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 1 1 54.52 18.30 L 68.71 46.98 A 48 48 0 1 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Europäische Patentorganisation: CHF 152'931.67 (92.7%)</title></path><path d="M 54.52 18.30 A 80 80 0 0 1 81.67 10.43 L 85.00 42.26 A 48 48 0 0 0 68.71 46.98 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Herr Carl Harald Leopold Beker: CHF 9'328.75 (5.7%)</title></path><path d="M 81.67 10.43 A 80 80 0 0 1 88.72 10.01 L 89.23 42.01 A 48 48 0 0 0 85.00 42.26 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Politische Gemeinde Rebstein: CHF 2'320.15 (1.4%)</title></path><path d="M 88.72 10.01 A 80 80 0 0 1 89.70 10.00 L 89.82 42.00 A 48 48 0 0 0 89.23 42.01 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>UBS Card Center: CHF 319.35 (0.2%)</title></path><path d="M 89.70 10.00 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 89.82 42.00 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Marie-Noel Arnold: CHF 100.00 (0.1%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Europäische Patentorg…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">92.7%</text><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Herr Carl Harald Leop…</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">5.7%</text><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Politische Gemeinde R…</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">1.4%</text><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">UBS Card Center</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">0.2%</text><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Marie-Noel Arnold</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">0.1%</text></svg></div>
+  </div>
+  
+  <div class="search-bar"><input type="text" placeholder="Gegenpartei suchen..." onkeyup="filterTable(2025, this.value)" id="search-2025"></div>
+  <div class="table-wrapper">
+  <table id="table-2025">
+    <thead>
+      <tr>
+        <th>Gegenpartei</th>
+        <th class="right">Anzahl</th>
+        <th class="right">Ausgaben (CHF)</th>
+        <th class="right">Einnahmen (CHF)</th>
+        <th class="right">Netto (CHF)</th>
+        <th class="right">Ausgaben</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="cp-row" data-cp="politische gemeinde rebstein">
+        <td class="cp-name"><details><summary>Politische Gemeinde Rebstein<span class="tag mixed">beides</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">9</td>
+        <td class="right debit">-12'143.00</td>
+        <td class="right credit">2'320.15</td>
+        <td class="right net-neg">-9'822.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-0">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-03</td><td class="right debit">-700.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-3'981.50</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-521.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-07</td><td class="right debit">-3'460.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-3'480.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit"></td><td class="right credit">2'320.15</td><td>3 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs card center">
+        <td class="cp-name"><details><summary>UBS Card Center<span class="tag mixed">beides</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">13</td>
+        <td class="right debit">-2'309.15</td>
+        <td class="right credit">319.35</td>
+        <td class="right net-neg">-1'989.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:19%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-1">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-21.90</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-02</td><td class="right debit">-609.45</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-03</td><td class="right debit">-638.70</td><td class="right credit">319.35</td><td>3 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit">-214.40</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-26.05</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-5.85</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-07</td><td class="right debit">-424.05</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-08</td><td class="right debit">-12.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-237.15</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit">-26.95</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-92.05</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="zollgarage rheintal ag">
+        <td class="cp-name"><details><summary>Zollgarage Rheintal AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-2'100.80</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-2'100.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:17%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-2">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-06</td><td class="right debit">-2'100.80</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="arztpraxis knierim">
+        <td class="cp-name"><details><summary>Arztpraxis Knierim<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">9</td>
+        <td class="right debit">-1'919.55</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'919.55</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:15%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-3">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-103.35</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit">-889.05</td><td class="right credit"></td><td>3 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-218.55</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-276.30</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-08</td><td class="right debit">-120.40</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-68.20</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-243.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="spitalregion rws">
+        <td class="cp-name"><details><summary>Spitalregion RWS<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-1'653.95</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'653.95</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:13%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-4">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-03</td><td class="right debit">-822.45</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-831.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gemeindeverwaltung rebstein">
+        <td class="cp-name"><details><summary>Gemeindeverwaltung Rebstein<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-1'588.85</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'588.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:13%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-5">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-03</td><td class="right debit">-1'588.85</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="hoch health ostschweiz">
+        <td class="cp-name"><details><summary>HOCH Health Ostschweiz<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-1'433.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'433.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:11%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-6">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-09</td><td class="right debit">-257.45</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit">-944.55</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-231.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="strassenverkehrsamt kanton st. gallen">
+        <td class="cp-name"><details><summary>Strassenverkehrsamt Kanton St. Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">5</td>
+        <td class="right debit">-1'336.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'336.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:11%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-7">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-02</td><td class="right debit">-1'256.00</td><td class="right credit"></td><td>3 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-80.00</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="apotheke zur sonne gmbh">
+        <td class="cp-name"><details><summary>Apotheke zur Sonne GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">5</td>
+        <td class="right debit">-1'284.65</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'284.65</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:10%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-8">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-04</td><td class="right debit">-179.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-184.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-459.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-10</td><td class="right debit">-276.90</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-184.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="schweizerische mobiliar">
+        <td class="cp-name"><details><summary>Schweizerische Mobiliar<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-1'136.95</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'136.95</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:9%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-9">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-07</td><td class="right debit">-461.45</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-675.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="sunrise gmbh">
+        <td class="cp-name"><details><summary>Sunrise GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">12</td>
+        <td class="right debit">-1'012.30</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'012.30</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:8%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-10">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-79.55</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-02</td><td class="right debit">-80.25</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-03</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-116.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-07</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-08</td><td class="right debit">-82.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-10</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit">-87.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-81.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="allianz suisse">
+        <td class="cp-name"><details><summary>Allianz Suisse<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-873.10</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-873.10</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:7%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-11">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-07</td><td class="right debit">-873.10</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="herzpraxis rheintal ag">
+        <td class="cp-name"><details><summary>Herzpraxis Rheintal AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-771.15</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-771.15</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:6%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-12">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-03</td><td class="right debit">-771.15</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="clark switzerland ag">
+        <td class="cp-name"><details><summary>Clark Switzerland AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-608.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-608.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:5%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-13">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-304.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-10</td><td class="right debit">-304.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="kssg / za">
+        <td class="cp-name"><details><summary>KSSG / ZA<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-552.15</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-552.15</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:4%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-14">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-552.15</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="kantonsspital st. gallen">
+        <td class="cp-name"><details><summary>Kantonsspital St. Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-442.40</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-442.40</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:3%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-15">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-04</td><td class="right debit">-442.40</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="serafe ag">
+        <td class="cp-name"><details><summary>Serafe AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-335.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-335.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-16">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-11</td><td class="right debit">-335.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="dr. risch ostschweiz ag">
+        <td class="cp-name"><details><summary>Dr. Risch Ostschweiz AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-295.30</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-295.30</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-17">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-02</td><td class="right debit">-32.20</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit">-96.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-111.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-54.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="melioration der rheinebene">
+        <td class="cp-name"><details><summary>Melioration der Rheinebene<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-294.80</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-294.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-18">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-10</td><td class="right debit">-294.80</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gebäudeversicherung st.gallen">
+        <td class="cp-name"><details><summary>Gebäudeversicherung St.Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-276.10</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-276.10</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:2%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-19">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-02</td><td class="right debit">-276.10</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs kontogebühren">
+        <td class="cp-name"><details><summary>UBS Kontogebühren<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">12</td>
+        <td class="right debit">-180.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-180.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-20">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-02</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-03</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-07</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-08</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-10</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="arztpraxis dr. geiger ag">
+        <td class="cp-name"><details><summary>Arztpraxis Dr. Geiger AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-127.85</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-127.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-21">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-127.85</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="dr. med. oliver schuff">
+        <td class="cp-name"><details><summary>Dr. med. Oliver Schuff<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-126.60</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-126.60</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:1%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-22">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit">-126.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="buttinette textil-versandhaus gmbh">
+        <td class="cp-name"><details><summary>Buttinette Textil-Versandhaus GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-76.95</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-76.95</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-23">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-03</td><td class="right debit">-76.95</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="amt für finanzdienstleistungen kt sg">
+        <td class="cp-name"><details><summary>Amt für Finanzdienstleistungen Kt SG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-71.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-71.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-24">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-08</td><td class="right debit">-71.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="zentrum für labormedizin">
+        <td class="cp-name"><details><summary>Zentrum für Labormedizin<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-23.90</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-23.90</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-25">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-06</td><td class="right debit">-23.90</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="europäische patentorganisation">
+        <td class="cp-name"><details><summary>Europäische Patentorganisation<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">12</td>
+        <td class="right ">—</td>
+        <td class="right credit">152'931.67</td>
+        <td class="right net-pos">+152'931.67</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-26">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-01</td><td class="right debit"></td><td class="right credit">12'797.11</td><td>1 Buchg.</td></tr>
+<tr><td>2025-02</td><td class="right debit"></td><td class="right credit">12'801.49</td><td>1 Buchg.</td></tr>
+<tr><td>2025-03</td><td class="right debit"></td><td class="right credit">12'794.96</td><td>1 Buchg.</td></tr>
+<tr><td>2025-04</td><td class="right debit"></td><td class="right credit">12'809.92</td><td>1 Buchg.</td></tr>
+<tr><td>2025-05</td><td class="right debit"></td><td class="right credit">12'794.38</td><td>1 Buchg.</td></tr>
+<tr><td>2025-06</td><td class="right debit"></td><td class="right credit">12'788.69</td><td>1 Buchg.</td></tr>
+<tr><td>2025-07</td><td class="right debit"></td><td class="right credit">12'786.67</td><td>1 Buchg.</td></tr>
+<tr><td>2025-08</td><td class="right debit"></td><td class="right credit">12'785.26</td><td>1 Buchg.</td></tr>
+<tr><td>2025-09</td><td class="right debit"></td><td class="right credit">12'785.26</td><td>1 Buchg.</td></tr>
+<tr><td>2025-10</td><td class="right debit"></td><td class="right credit">12'789.77</td><td>1 Buchg.</td></tr>
+<tr><td>2025-11</td><td class="right debit"></td><td class="right credit">12'779.29</td><td>1 Buchg.</td></tr>
+<tr><td>2025-12</td><td class="right debit"></td><td class="right credit">12'218.87</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="herr carl harald leopold beker">
+        <td class="cp-name"><details><summary>Herr Carl Harald Leopold Beker<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right ">—</td>
+        <td class="right credit">9'328.75</td>
+        <td class="right net-pos">+9'328.75</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-27">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-12</td><td class="right debit"></td><td class="right credit">9'328.75</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="marie-noel arnold">
+        <td class="cp-name"><details><summary>Marie-Noel Arnold<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right ">—</td>
+        <td class="right credit">100.00</td>
+        <td class="right net-pos">+100.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2025-28">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2025-04</td><td class="right debit"></td><td class="right credit">100.00</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+<div class="section" id="year-2024">
+  
+  <div class="cards">
+    <div class="card"><div class="card-label">Einnahmen</div><div class="card-value green">CHF 158'320.17</div></div>
+    <div class="card"><div class="card-label">Ausgaben</div><div class="card-value red">CHF 26'867.95</div></div>
+    <div class="card"><div class="card-label">Netto</div><div class="card-value green">CHF +131'452.22</div></div>
+    <div class="card"><div class="card-label">Transaktionen</div><div class="card-value neutral">84</div></div>
+    <div class="card"><div class="card-label">Gegenparteien</div><div class="card-value blue">23</div></div>
+  </div>
+  
+  <div class="charts-row">
+    <div class="chart-box"><h3>Ausgaben nach Gegenpartei</h3><svg viewBox="0 0 340 218" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:218px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 0 1 166.91 68.00 L 136.15 76.80 A 48 48 0 0 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Politische Gemeinde Rebstein: CHF 5'525.50 (20.6%)</title></path><path d="M 166.91 68.00 A 80 80 0 0 1 139.44 152.90 L 119.66 127.74 A 48 48 0 0 0 136.15 76.80 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Gemeindeverwaltung Rebstein: CHF 5'059.85 (18.8%)</title></path><path d="M 139.44 152.90 A 80 80 0 0 1 90.63 170.00 L 90.38 138.00 A 48 48 0 0 0 119.66 127.74 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>UBS Card Center: CHF 2'815.00 (10.5%)</title></path><path d="M 90.63 170.00 A 80 80 0 0 1 54.50 161.69 L 68.70 133.01 A 48 48 0 0 0 90.38 138.00 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Andreas Bölsterli: CHF 2'000.00 (7.4%)</title></path><path d="M 54.50 161.69 A 80 80 0 0 1 27.12 139.45 L 52.27 119.67 A 48 48 0 0 0 68.70 133.01 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Schweizerische Mobiliar: CHF 1'900.85 (7.1%)</title></path><path d="M 27.12 139.45 A 80 80 0 0 1 13.43 113.16 L 44.06 103.90 A 48 48 0 0 0 52.27 119.67 Z" fill="#ec4899" stroke="var(--bg2)" stroke-width="1.5"><title>Norm Elektro GmbH: CHF 1'593.75 (5.9%)</title></path><path d="M 13.43 113.16 A 80 80 0 0 1 10.01 91.12 L 42.00 90.67 A 48 48 0 0 0 44.06 103.90 Z" fill="#06b6d4" stroke="var(--bg2)" stroke-width="1.5"><title>Strassenverkehrsamt Kanton St. Gallen: CHF 1'196.00 (4.5%)</title></path><path d="M 10.01 91.12 A 80 80 0 0 1 12.73 69.27 L 43.64 77.56 A 48 48 0 0 0 42.00 90.67 Z" fill="#f97316" stroke="var(--bg2)" stroke-width="1.5"><title>Waldburger & Rutishauser AG: CHF 1'180.80 (4.4%)</title></path><path d="M 12.73 69.27 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 43.64 77.56 Z" fill="#64748b" stroke="var(--bg2)" stroke-width="1.5"><title>Sonstige: CHF 5'596.20 (20.8%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Politische Gemeinde R…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">20.6%</text><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Gemeindeverwaltung Re…</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">18.8%</text><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">UBS Card Center</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">10.5%</text><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Andreas Bölsterli</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">7.4%</text><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Schweizerische Mobili…</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">7.1%</text><rect x="196" y="124" width="10" height="10" rx="2" fill="#ec4899"/><text x="210" y="133" font-size="10" fill="var(--text2)">Norm Elektro GmbH</text><text x="336" y="133" font-size="9.5" fill="var(--muted)" text-anchor="end">5.9%</text><rect x="196" y="146" width="10" height="10" rx="2" fill="#06b6d4"/><text x="210" y="155" font-size="10" fill="var(--text2)">Strassenverkehrsamt K…</text><text x="336" y="155" font-size="9.5" fill="var(--muted)" text-anchor="end">4.5%</text><rect x="196" y="168" width="10" height="10" rx="2" fill="#f97316"/><text x="210" y="177" font-size="10" fill="var(--text2)">Waldburger & Rutishau…</text><text x="336" y="177" font-size="9.5" fill="var(--muted)" text-anchor="end">4.4%</text><rect x="196" y="190" width="10" height="10" rx="2" fill="#64748b"/><text x="210" y="199" font-size="10" fill="var(--text2)">Sonstige</text><text x="336" y="199" font-size="9.5" fill="var(--muted)" text-anchor="end">20.8%</text></svg></div>
+    <div class="chart-box"><h3>Einnahmen nach Gegenpartei</h3><svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:200px;overflow:visible"><path d="M 90.00 10.00 A 80 80 0 1 1 80.18 10.61 L 84.11 42.36 A 48 48 0 1 0 90.00 42.00 Z" fill="#3b82f6" stroke="var(--bg2)" stroke-width="1.5"><title>Europäische Patentorganisation: CHF 155'218.77 (98.0%)</title></path><path d="M 80.18 10.61 A 80 80 0 0 1 87.54 10.04 L 88.52 42.02 A 48 48 0 0 0 84.11 42.36 Z" fill="#ef4444" stroke="var(--bg2)" stroke-width="1.5"><title>Herr Carl Harald Leopold Beker: CHF 2'325.00 (1.5%)</title></path><path d="M 87.54 10.04 A 80 80 0 0 1 89.60 10.00 L 89.76 42.00 A 48 48 0 0 0 88.52 42.02 Z" fill="#10b981" stroke="var(--bg2)" stroke-width="1.5"><title>Schweizerische Mobiliar: CHF 650.00 (0.4%)</title></path><path d="M 89.60 10.00 A 80 80 0 0 1 89.92 10.00 L 89.95 42.00 A 48 48 0 0 0 89.76 42.00 Z" fill="#f59e0b" stroke="var(--bg2)" stroke-width="1.5"><title>Marie-Noel Arnold: CHF 100.00 (0.1%)</title></path><path d="M 89.92 10.00 A 80 80 0 0 1 90.00 10.00 L 90.00 42.00 A 48 48 0 0 0 89.95 42.00 Z" fill="#8b5cf6" stroke="var(--bg2)" stroke-width="1.5"><title>Cigna International Health: CHF 26.40 (0.0%)</title></path><rect x="196" y="14" width="10" height="10" rx="2" fill="#3b82f6"/><text x="210" y="23" font-size="10" fill="var(--text2)">Europäische Patentorg…</text><text x="336" y="23" font-size="9.5" fill="var(--muted)" text-anchor="end">98.0%</text><rect x="196" y="36" width="10" height="10" rx="2" fill="#ef4444"/><text x="210" y="45" font-size="10" fill="var(--text2)">Herr Carl Harald Leop…</text><text x="336" y="45" font-size="9.5" fill="var(--muted)" text-anchor="end">1.5%</text><rect x="196" y="58" width="10" height="10" rx="2" fill="#10b981"/><text x="210" y="67" font-size="10" fill="var(--text2)">Schweizerische Mobili…</text><text x="336" y="67" font-size="9.5" fill="var(--muted)" text-anchor="end">0.4%</text><rect x="196" y="80" width="10" height="10" rx="2" fill="#f59e0b"/><text x="210" y="89" font-size="10" fill="var(--text2)">Marie-Noel Arnold</text><text x="336" y="89" font-size="9.5" fill="var(--muted)" text-anchor="end">0.1%</text><rect x="196" y="102" width="10" height="10" rx="2" fill="#8b5cf6"/><text x="210" y="111" font-size="10" fill="var(--text2)">Cigna International H…</text><text x="336" y="111" font-size="9.5" fill="var(--muted)" text-anchor="end">0.0%</text></svg></div>
+  </div>
+  
+  <div class="search-bar"><input type="text" placeholder="Gegenpartei suchen..." onkeyup="filterTable(2024, this.value)" id="search-2024"></div>
+  <div class="table-wrapper">
+  <table id="table-2024">
+    <thead>
+      <tr>
+        <th>Gegenpartei</th>
+        <th class="right">Anzahl</th>
+        <th class="right">Ausgaben (CHF)</th>
+        <th class="right">Einnahmen (CHF)</th>
+        <th class="right">Netto (CHF)</th>
+        <th class="right">Ausgaben</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="cp-row" data-cp="politische gemeinde rebstein">
+        <td class="cp-name"><details><summary>Politische Gemeinde Rebstein<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-5'525.50</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-5'525.50</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:100%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-0">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-03</td><td class="right debit">-700.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-05</td><td class="right debit">-3'782.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit">-1'043.00</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gemeindeverwaltung rebstein">
+        <td class="cp-name"><details><summary>Gemeindeverwaltung Rebstein<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-5'059.85</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-5'059.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:91%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-1">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-628.20</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-3'693.65</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-04</td><td class="right debit">-738.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs card center">
+        <td class="cp-name"><details><summary>UBS Card Center<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">10</td>
+        <td class="right debit">-2'815.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-2'815.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:50%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-2">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-409.80</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-258.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-03</td><td class="right debit">-183.25</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-05</td><td class="right debit">-810.15</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-07</td><td class="right debit">-5.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-08</td><td class="right debit">-505.25</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit">-10.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-10</td><td class="right debit">-4.55</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-11</td><td class="right debit">-247.30</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-12</td><td class="right debit">-380.60</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="andreas bölsterli">
+        <td class="cp-name"><details><summary>Andreas Bölsterli<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-2'000.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-2'000.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:36%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-3">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-04</td><td class="right debit">-2'000.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="schweizerische mobiliar">
+        <td class="cp-name"><details><summary>Schweizerische Mobiliar<span class="tag mixed">beides</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-1'900.85</td>
+        <td class="right credit">650.00</td>
+        <td class="right net-neg">-1'250.85</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:34%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-4">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-651.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-07</td><td class="right debit">-415.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit"></td><td class="right credit">650.00</td><td>1 Buchg.</td></tr>
+<tr><td>2024-12</td><td class="right debit">-834.10</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="norm elektro gmbh">
+        <td class="cp-name"><details><summary>Norm Elektro GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-1'593.75</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'593.75</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:28%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-5">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-05</td><td class="right debit">-1'593.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="strassenverkehrsamt kanton st. gallen">
+        <td class="cp-name"><details><summary>Strassenverkehrsamt Kanton St. Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-1'196.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'196.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:21%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-6">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-728.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-468.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="waldburger & rutishauser ag">
+        <td class="cp-name"><details><summary>Waldburger & Rutishauser AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-1'180.80</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'180.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:21%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-7">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-04</td><td class="right debit">-1'180.80</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="endokrinologie-diabetologie rheintal">
+        <td class="cp-name"><details><summary>Endokrinologie-Diabetologie Rheintal<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-1'176.75</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'176.75</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:21%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-8">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-145.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-234.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit">-350.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-08</td><td class="right debit">-447.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="sunrise gmbh">
+        <td class="cp-name"><details><summary>Sunrise GmbH<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">13</td>
+        <td class="right debit">-1'036.80</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-1'036.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:18%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-9">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-160.20</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-79.05</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-03</td><td class="right debit">-79.50</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-04</td><td class="right debit">-79.95</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-05</td><td class="right debit">-78.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit">-82.65</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-07</td><td class="right debit">-78.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-08</td><td class="right debit">-79.55</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit">-81.65</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-10</td><td class="right debit">-79.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-11</td><td class="right debit">-79.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-12</td><td class="right debit">-78.75</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="allianz suisse">
+        <td class="cp-name"><details><summary>Allianz Suisse<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-873.10</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-873.10</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:15%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-10">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-07</td><td class="right debit">-873.10</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="arztpraxis knierim">
+        <td class="cp-name"><details><summary>Arztpraxis Knierim<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">4</td>
+        <td class="right debit">-530.25</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-530.25</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:9%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-11">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-07</td><td class="right debit">-69.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit">-33.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-10</td><td class="right debit">-427.55</td><td class="right credit"></td><td>2 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="edelmetallbestellung ubs">
+        <td class="cp-name"><details><summary>Edelmetallbestellung UBS<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-469.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-469.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:8%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-12">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-12</td><td class="right debit">-469.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="serafe ag">
+        <td class="cp-name"><details><summary>Serafe AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-335.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-335.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:6%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-13">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-11</td><td class="right debit">-335.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="melioration der rheinebene">
+        <td class="cp-name"><details><summary>Melioration der Rheinebene<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-294.80</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-294.80</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:5%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-14">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-10</td><td class="right debit">-294.80</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="gebäudeversicherung st.gallen">
+        <td class="cp-name"><details><summary>Gebäudeversicherung St.Gallen<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right debit">-270.95</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-270.95</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:4%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-15">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-02</td><td class="right debit">-270.95</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="dr. risch ostschweiz ag">
+        <td class="cp-name"><details><summary>Dr. Risch Ostschweiz AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">3</td>
+        <td class="right debit">-239.50</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-239.50</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:4%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-16">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-81.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit">-86.70</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit">-71.10</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="oviva ag">
+        <td class="cp-name"><details><summary>Oviva AG<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">2</td>
+        <td class="right debit">-190.05</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-190.05</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:3%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-17">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-03</td><td class="right debit">-106.90</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-04</td><td class="right debit">-83.15</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="ubs kontogebühren">
+        <td class="cp-name"><details><summary>UBS Kontogebühren<span class="tag expense">ausgang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">12</td>
+        <td class="right debit">-180.00</td>
+        <td class="right ">—</td>
+        <td class="right net-neg">-180.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:3%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-18">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-03</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-04</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-05</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-07</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-08</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-10</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-11</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+<tr><td>2024-12</td><td class="right debit">-15.00</td><td class="right credit"></td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="europäische patentorganisation">
+        <td class="cp-name"><details><summary>Europäische Patentorganisation<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">12</td>
+        <td class="right ">—</td>
+        <td class="right credit">155'218.77</td>
+        <td class="right net-pos">+155'218.77</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-19">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-01</td><td class="right debit"></td><td class="right credit">12'622.32</td><td>1 Buchg.</td></tr>
+<tr><td>2024-02</td><td class="right debit"></td><td class="right credit">12'684.14</td><td>1 Buchg.</td></tr>
+<tr><td>2024-03</td><td class="right debit"></td><td class="right credit">12'712.72</td><td>1 Buchg.</td></tr>
+<tr><td>2024-04</td><td class="right debit"></td><td class="right credit">12'734.09</td><td>1 Buchg.</td></tr>
+<tr><td>2024-05</td><td class="right debit"></td><td class="right credit">12'736.52</td><td>1 Buchg.</td></tr>
+<tr><td>2024-06</td><td class="right debit"></td><td class="right credit">12'740.12</td><td>1 Buchg.</td></tr>
+<tr><td>2024-07</td><td class="right debit"></td><td class="right credit">12'725.14</td><td>1 Buchg.</td></tr>
+<tr><td>2024-08</td><td class="right debit"></td><td class="right credit">12'699.36</td><td>1 Buchg.</td></tr>
+<tr><td>2024-09</td><td class="right debit"></td><td class="right credit">12'694.02</td><td>1 Buchg.</td></tr>
+<tr><td>2024-10</td><td class="right debit"></td><td class="right credit">12'691.46</td><td>1 Buchg.</td></tr>
+<tr><td>2024-11</td><td class="right debit"></td><td class="right credit">15'416.29</td><td>1 Buchg.</td></tr>
+<tr><td>2024-12</td><td class="right debit"></td><td class="right credit">12'762.59</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="herr carl harald leopold beker">
+        <td class="cp-name"><details><summary>Herr Carl Harald Leopold Beker<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right ">—</td>
+        <td class="right credit">2'325.00</td>
+        <td class="right net-pos">+2'325.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-20">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-03</td><td class="right debit"></td><td class="right credit">2'325.00</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="marie-noel arnold">
+        <td class="cp-name"><details><summary>Marie-Noel Arnold<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right ">—</td>
+        <td class="right credit">100.00</td>
+        <td class="right net-pos">+100.00</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-21">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-04</td><td class="right debit"></td><td class="right credit">100.00</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+      <tr class="cp-row" data-cp="cigna international health">
+        <td class="cp-name"><details><summary>Cigna International Health<span class="tag income">eingang</span><span class="expand-arrow">&#9660;</span></summary></details></td>
+        <td class="right count">1</td>
+        <td class="right ">—</td>
+        <td class="right credit">26.40</td>
+        <td class="right net-pos">+26.40</td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar debit-bar" style="width:0%"></div></div></td>
+      </tr>
+      <tr class="detail-row" id="d-2024-22">
+        <td colspan="6"><div class="detail-inner"><table>
+          <thead><tr><th>Monat</th><th class="right">Ausgaben</th><th class="right">Einnahmen</th><th>Anzahl</th></tr></thead>
+          <tbody><tr><td>2024-09</td><td class="right debit"></td><td class="right credit">26.40</td><td>1 Buchg.</td></tr>
+</tbody></table></div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+<script>
+
+function showYear(year) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('year-' + year).classList.add('active');
+  document.getElementById('tab-' + year).classList.add('active');
+}
+
+function toggleDetail(id) {
+  var row = document.getElementById(id);
+  row.classList.toggle('open');
+}
+
+function filterTable(year, query) {
+  var q = query.toLowerCase();
+  var rows = document.querySelectorAll('#table-' + year + ' .cp-row');
+  rows.forEach(function(row) {
+    var cp = row.getAttribute('data-cp') || '';
+    var match = cp.includes(q);
+    row.style.display = match ? '' : 'none';
+    var nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('detail-row')) {
+      nextRow.style.display = match ? '' : 'none';
+    }
+  });
+}
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-t') === t);
+  });
+  try { localStorage.setItem('pdf-analyse-theme', t); } catch(e) {}
+}
+
+(function() {
+  try {
+    var saved = localStorage.getItem('pdf-analyse-theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+})();
+
+// Details/summary toggle — clicking a <details> row shows the detail-row below
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('td.cp-name details').forEach(function(det) {
+    var tr = det.closest('tr');
+    var detailRow = tr && tr.nextElementSibling;
+    if (detailRow && detailRow.classList.contains('detail-row')) {
+      det.addEventListener('toggle', function() {
+        detailRow.classList.toggle('open', det.open);
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
