@@ -97,6 +97,11 @@ for div in divs:
 
 print(f"  Parsed {len(transactions)} transactions")
 
+# Normalize Cigna payee variants → single canonical name
+for txn in transactions:
+    if txn['payee'].upper().startswith('CIGNA'):
+        txn['payee'] = 'CIGNA INTERNATIONAL HEALTH'
+
 # ── Categorize ────────────────────────────────────────────────────────────────
 EXPENSE_CATEGORIES = [
     ('Lebensmittel', [
@@ -162,6 +167,9 @@ INCOME_CATEGORIES = [
     ('Zinsen/Dividenden', [
         'ZINSEN', 'HABENZINS', 'DIVIDENDE', 'AUSSCHÜTTUNG',
         'ZINSGUTSCHRIFT', 'ZINSABSCHLUSS',
+    ]),
+    ('Krankenkasse', [
+        'CIGNA', 'ERSTATTUNG VON KRANKHEITSKOSTEN',
     ]),
     ('Steuer/Soziales', [
         'STEUERERSTATTUNG', 'FINANZAMT', 'KINDERGELD', 'ELTERNGELD',
@@ -344,35 +352,75 @@ def build_year_section(year, txns):
     <div class="chart-box"><h3>Einnahmen nach Kategorie</h3>{pie_income}</div>
   </div>"""
 
-    # Category table (expenses)
-    exp_rows = ''
-    for cat, total in sorted(cat_expense.items(), key=lambda x: x[1], reverse=True):
-        cnt = sum(1 for t in expense_txns if t['category'] == cat)
-        exp_rows += (f'<tr><td>{cat}</td><td class="right">{cnt}</td>'
-                     f'<td class="right debit">{fmt(total)} €</td></tr>\n')
+    # ── Category accordion (expenses) ──────────────────────────────────────────
+    def make_txn_rows_html(t_list):
+        rows = ''
+        for t in sorted(t_list, key=lambda x: x['date']):
+            cls = 'credit' if t['amount'] >= 0 else 'debit'
+            sign = '+' if t['amount'] >= 0 else ''
+            ref_d = t['reference'][:60] + ('…' if len(t['reference']) > 60 else '')
+            rows += (f'<tr>'
+                     f'<td style="padding-left:2rem">{t["date"].strftime("%d.%m.%Y")}</td>'
+                     f'<td class="txn-type">{t["type"]}</td>'
+                     f'<td class="txn-ref" title="{t["reference"]}">{ref_d}</td>'
+                     f'<td class="right {cls}">{sign}{fmt(t["amount"])} €</td>'
+                     f'</tr>\n')
+        return rows
 
-    # Income category table
-    inc_rows = ''
-    for cat, total in sorted(cat_income.items(), key=lambda x: x[1], reverse=True):
-        cnt = sum(1 for t in income_txns if t['category'] == cat)
-        inc_rows += (f'<tr><td>{cat}</td><td class="right">{cnt}</td>'
-                     f'<td class="right credit">{fmt(total)} €</td></tr>\n')
+    def make_cat_accordion(cat_txns_list, is_income):
+        html = '<div class="cat-accordion">'
+        for cat, total in sorted(cat_txns_list, key=lambda x: x[1], reverse=True):
+            sign = '+' if is_income else '−'
+            cls = 'credit' if is_income else 'debit'
+            t_list = [t for t in (income_txns if is_income else expense_txns) if t['category'] == cat]
+            cnt = len(t_list)
+            # Group by payee within category
+            payee_map = collections.defaultdict(list)
+            for t in t_list:
+                payee_map[t['payee']].append(t)
+
+            payee_html = ''
+            for payee, p_txns in sorted(payee_map.items(), key=lambda x: abs(sum(t['amount'] for t in x[1])), reverse=True):
+                p_total = sum(t['amount'] for t in p_txns)
+                p_sign = '+' if p_total >= 0 else '−'
+                p_cls = 'credit' if p_total >= 0 else 'debit'
+                p_cnt = len(p_txns)
+                txn_rows = make_txn_rows_html(p_txns)
+                payee_html += f"""<details class="payee-details">
+  <summary class="payee-summary">
+    <span class="pd-name">{payee[:55]}</span>
+    <span class="pd-count">{p_cnt} Buchungen</span>
+    <span class="pd-amt {p_cls}">{p_sign}{fmt(abs(p_total))} €</span>
+  </summary>
+  <div class="payee-txn-wrap"><table>
+    <thead><tr><th>Datum</th><th>Typ</th><th>Referenz</th><th class="right">Betrag</th></tr></thead>
+    <tbody>{txn_rows}</tbody>
+  </table></div>
+</details>"""
+
+            html += f"""<details class="cat-details">
+  <summary class="cat-summary">
+    <span class="cd-name">{cat}</span>
+    <span class="cd-count">{cnt}</span>
+    <span class="cd-amt {cls}">{sign}{fmt(abs(total))} €</span>
+  </summary>
+  <div class="cat-payee-list">{payee_html}</div>
+</details>"""
+        html += '</div>'
+        return html
+
+    exp_accordion = make_cat_accordion(cat_expense.items(), is_income=False)
+    inc_accordion = make_cat_accordion(cat_income.items(), is_income=True)
 
     cat_tables = f"""
   <div class="charts-row" style="grid-template-columns:1fr 1fr">
     <div class="table-wrapper" style="margin-top:0">
       <div style="padding:.8rem 1rem;font-size:.8rem;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em">Ausgaben nach Kategorie</div>
-      <table>
-        <thead><tr><th>Kategorie</th><th class="right">Anzahl</th><th class="right">Betrag</th></tr></thead>
-        <tbody>{exp_rows}</tbody>
-      </table>
+      <div style="padding:.5rem .5rem .5rem .5rem">{exp_accordion}</div>
     </div>
     <div class="table-wrapper" style="margin-top:0">
       <div style="padding:.8rem 1rem;font-size:.8rem;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em">Einnahmen nach Kategorie</div>
-      <table>
-        <thead><tr><th>Kategorie</th><th class="right">Anzahl</th><th class="right">Betrag</th></tr></thead>
-        <tbody>{inc_rows}</tbody>
-      </table>
+      <div style="padding:.5rem .5rem .5rem .5rem">{inc_accordion}</div>
     </div>
   </div>"""
 
@@ -389,17 +437,35 @@ def build_year_section(year, txns):
         cnt = payee_counts[payee]
         cls = 'credit' if net >= 0 else 'debit'
         sign = '+' if net >= 0 else ''
-        top20_rows += (f'<tr><td class="payee-name">{payee}</td>'
-                       f'<td class="right">{cnt}</td>'
-                       f'<td class="right {cls}">{sign}{fmt(net)} €</td></tr>\n')
+        p_txns = sorted([t for t in txns if t['payee'] == payee], key=lambda t: t['date'])
+        txn_rows = ''
+        for t in p_txns:
+            tc = 'credit' if t['amount'] >= 0 else 'debit'
+            ts = '+' if t['amount'] >= 0 else ''
+            ref_d = t['reference'][:60] + ('…' if len(t['reference']) > 60 else '')
+            txn_rows += (f'<tr>'
+                         f'<td style="padding-left:1.5rem">{t["date"].strftime("%d.%m.%Y")}</td>'
+                         f'<td class="txn-type">{t["type"]}</td>'
+                         f'<td class="txn-ref" title="{t["reference"]}">{ref_d}</td>'
+                         f'<td>{t["category"]}</td>'
+                         f'<td class="right {tc}">{ts}{fmt(t["amount"])} €</td>'
+                         f'</tr>\n')
+        top20_rows += f"""<details class="payee-details top20-details">
+  <summary class="payee-summary">
+    <span class="pd-name" style="min-width:260px">{payee[:55]}</span>
+    <span class="pd-count">{cnt} Buchungen</span>
+    <span class="pd-amt {cls}">{sign}{fmt(abs(net))} €</span>
+  </summary>
+  <div class="payee-txn-wrap"><table>
+    <thead><tr><th>Datum</th><th>Typ</th><th>Referenz</th><th>Kategorie</th><th class="right">Betrag</th></tr></thead>
+    <tbody>{txn_rows}</tbody>
+  </table></div>
+</details>"""
 
     top20_table = f"""
   <div class="table-wrapper">
     <div style="padding:.8rem 1rem;font-size:.8rem;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em">Top 20 Empfänger/Auftraggeber (nach Betrag)</div>
-    <table>
-      <thead><tr><th>Empfänger/Auftraggeber</th><th class="right">Anzahl</th><th class="right">Netto</th></tr></thead>
-      <tbody>{top20_rows}</tbody>
-    </table>
+    <div style="padding:.5rem">{top20_rows}</div>
   </div>"""
 
     # Monthly collapsible sections
@@ -546,6 +612,25 @@ def build_html(transactions):
   .month-table-wrap{border-top:1px solid var(--border);overflow-x:auto}
   .pdf-link{display:inline-flex;align-items:center;padding:.45rem 1rem;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-size:.8rem;font-weight:600;transition:opacity .2s;white-space:nowrap}
   .pdf-link:hover{opacity:.85}
+  /* Category & Payee accordions */
+  .cat-accordion{display:flex;flex-direction:column;gap:.3rem}
+  .cat-details,.payee-details{border-radius:8px;overflow:hidden;border:1px solid var(--border2)}
+  .cat-summary{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;cursor:pointer;list-style:none;background:var(--bg);transition:background .15s}
+  .cat-summary::-webkit-details-marker{display:none}
+  .cat-summary:hover{background:var(--hover)}
+  .cd-name{flex:1;font-weight:600;font-size:.85rem}
+  .cd-count{font-size:.75rem;color:var(--muted);min-width:3rem;text-align:right}
+  .cd-amt{font-weight:700;font-size:.9rem;min-width:90px;text-align:right}
+  .cat-payee-list{padding:.4rem .4rem .4rem 1rem;display:flex;flex-direction:column;gap:.25rem;background:var(--detail-bg)}
+  .payee-details{border-color:var(--border2)}
+  .payee-summary{display:flex;align-items:center;gap:.6rem;padding:.4rem .7rem;cursor:pointer;list-style:none;background:var(--bg2);transition:background .15s}
+  .payee-summary::-webkit-details-marker{display:none}
+  .payee-summary:hover{background:var(--hover)}
+  .pd-name{flex:1;font-size:.82rem;font-weight:500;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pd-count{font-size:.72rem;color:var(--muted);min-width:5rem;text-align:right}
+  .pd-amt{font-size:.82rem;font-weight:600;min-width:90px;text-align:right}
+  .payee-txn-wrap{border-top:1px solid var(--border2);overflow-x:auto}
+  .top20-details{margin-bottom:.2rem}
   @media(max-width:700px){.charts-row{grid-template-columns:1fr}.header-inner{flex-direction:column;align-items:flex-start}}
 """
 
