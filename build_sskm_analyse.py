@@ -97,6 +97,14 @@ for div in divs:
 
 print(f"  Parsed {len(transactions)} transactions")
 
+# Remove own-account transfers (payee = Harald Beker himself)
+before = len(transactions)
+transactions = [
+    t for t in transactions
+    if not re.match(r'(?i)(Harald\s+Beker|Beker,\s*Harald)', t['payee'])
+]
+print(f"  Removed {before - len(transactions)} own-account transfers (Harald Beker)")
+
 # Normalize Cigna payee variants → single canonical name
 for txn in transactions:
     if txn['payee'].upper().startswith('CIGNA'):
