@@ -111,6 +111,22 @@ for txn in transactions:
     if txn['payee'].upper().startswith('CIGNA'):
         txn['payee'] = 'CIGNA INTERNATIONAL HEALTH'
 
+# Normalize Amazon payee variants → single name
+for txn in transactions:
+    if 'AMAZON' in txn['payee'].upper():
+        txn['payee'] = 'Amazon'
+
+# Normalize Ärzte payee variants
+for txn in transactions:
+    p = txn['payee']
+    pu = p.upper()
+    if 'MEINDL' in pu or 'MEINL' in pu:
+        txn['payee'] = 'Dr. Meindl u. Partner'
+    elif 'RUNGE' in pu:
+        txn['payee'] = 'Andree Runge'
+    elif re.search(r'KAUFF?MANN', pu):
+        txn['payee'] = 'Dr. Daniel Kaufmann'
+
 # ── Categorize ────────────────────────────────────────────────────────────────
 EXPENSE_CATEGORIES = [
     ('Lebensmittel', [
@@ -147,6 +163,13 @@ EXPENSE_CATEGORIES = [
         'AOK', ' TK ', 'KRANKENKASSE', 'OPTIKER', 'AUGENARZT',
         'PHYSIOTHERAP', 'HEILPRAKT', 'LABOR ', 'SANITÄTS',
         'BARMER', 'DAK', 'BKK', 'IKK',
+    ]),
+    ('Kinder', [
+        'CARL BEKER', 'MARIA BEKER',
+    ]),
+    ('Ärzte', [
+        'DR. MEINDL', 'DR.MEINDL', 'ANDREE RUNGE', 'DR. DANIEL', 'DR. LUKAS',
+        'DR. CLAUDIA', 'DR.MED', 'DR. MED',
     ]),
     ('Shopping', [
         'AMAZON', 'ZALANDO', 'H&M', 'ZARA', 'OTTO ', 'EBAY',
@@ -205,6 +228,15 @@ def categorize(txn):
     type_up = txn['type'].upper()
     ref_up = txn['reference'].upper()
     search_str = payee_up + ' ' + type_up + ' ' + ref_up
+
+    # ── Explicit payee-based overrides (checked before keyword scan) ───────────
+    if amount < 0:
+        if payee_up in ('CARL BEKER', 'MARIA BEKER'):
+            return 'Kinder'
+        if payee_up == 'AMAZON':
+            return 'Shopping'
+        if re.search(r'\bDR\.', payee_up) or 'RUNGE' in payee_up or 'MEINDL' in payee_up or 'MEINL' in payee_up:
+            return 'Ärzte'
 
     if amount > 0:
         # Income
