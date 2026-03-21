@@ -271,6 +271,8 @@ def categorize(txn):
     if amount < 0:
         if 'AUTOKLINIK' in payee_up or 'GARAGE' in payee_up:
             return 'Auto'
+        if 'APOTHEKE' in payee_up:
+            return 'Gesundheit'
         if 'SPARKASSE SCHWABEN' in payee_up:
             return 'Bankomat'
         if payee_up in ('CARL BEKER', 'MARIA BEKER'):
