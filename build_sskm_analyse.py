@@ -111,10 +111,16 @@ for txn in transactions:
     if txn['payee'].upper().startswith('CIGNA'):
         txn['payee'] = 'CIGNA INTERNATIONAL HEALTH'
 
-# Normalize Amazon payee variants → single name
+# Normalize Amazon + Landesbank Berlin (Amazon credit card) → same payee
 for txn in transactions:
-    if 'AMAZON' in txn['payee'].upper():
+    pu = txn['payee'].upper()
+    if 'AMAZON' in pu or 'LANDESBANK BERLIN' in pu:
         txn['payee'] = 'Amazon'
+
+# Normalize PayPal variants → single payee
+for txn in transactions:
+    if 'PAYPAL' in txn['payee'].upper():
+        txn['payee'] = 'PayPal'
 
 # Normalize Ärzte payee variants
 for txn in transactions:
@@ -126,6 +132,12 @@ for txn in transactions:
         txn['payee'] = 'Andree Runge'
     elif re.search(r'KAUFF?MANN', pu):
         txn['payee'] = 'Dr. Daniel Kaufmann'
+    elif 'SOWA' in pu:
+        txn['payee'] = 'Dr. Volker Sowa'
+    elif 'DRES.' in pu or 'BAG HNO' in pu:
+        txn['payee'] = 'Dres. Roth/Stelzer/Köhler/Woldt'
+    elif 'ALLERGI' in pu:
+        txn['payee'] = 'Allergieambulatorium'
 
 # ── Categorize ────────────────────────────────────────────────────────────────
 EXPENSE_CATEGORIES = [
@@ -169,7 +181,10 @@ EXPENSE_CATEGORIES = [
     ]),
     ('Ärzte', [
         'DR. MEINDL', 'DR.MEINDL', 'ANDREE RUNGE', 'DR. DANIEL', 'DR. LUKAS',
-        'DR. CLAUDIA', 'DR.MED', 'DR. MED',
+        'DR. CLAUDIA', 'DR.MED', 'DR. MED', 'DR. VOLKER', 'DRES.', 'ALLERGI',
+    ]),
+    ('PayPal', [
+        'PAYPAL',
     ]),
     ('Shopping', [
         'AMAZON', 'ZALANDO', 'H&M', 'ZARA', 'OTTO ', 'EBAY',
@@ -235,7 +250,11 @@ def categorize(txn):
             return 'Kinder'
         if payee_up == 'AMAZON':
             return 'Shopping'
-        if re.search(r'\bDR\.', payee_up) or 'RUNGE' in payee_up or 'MEINDL' in payee_up or 'MEINL' in payee_up:
+        if payee_up == 'PAYPAL':
+            return 'PayPal'
+        if (re.search(r'\bDR\.', payee_up) or re.search(r'\bDRES\.', payee_up)
+                or 'RUNGE' in payee_up or 'MEINDL' in payee_up or 'MEINL' in payee_up
+                or 'SOWA' in payee_up or 'ALLERGI' in payee_up or 'BAG HNO' in payee_up):
             return 'Ärzte'
 
     if amount > 0:
