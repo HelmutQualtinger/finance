@@ -102,8 +102,9 @@ before = len(transactions)
 transactions = [
     t for t in transactions
     if not re.match(r'(?i)(Harald\s+Beker|Beker,\s*Harald)', t['payee'])
+    and not (re.match(r'(?i)CARL\s+BEKER', t['payee']) and abs(t['amount']) > 9000)
 ]
-print(f"  Removed {before - len(transactions)} own-account transfers (Harald Beker)")
+print(f"  Removed {before - len(transactions)} own-account transfers (Harald Beker / Carl Beker >9000)")
 
 # Normalize Cigna payee variants → single canonical name
 for txn in transactions:
