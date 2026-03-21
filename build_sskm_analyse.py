@@ -193,6 +193,9 @@ EXPENSE_CATEGORIES = [
         'PHYSIOTHERAP', 'HEILPRAKT', 'LABOR ', 'SANITÄTS',
         'BARMER', 'DAK', 'BKK', 'IKK',
     ]),
+    ('Auto', [
+        'AUTOKLINIK', 'GARAGE', 'AUTOWERKSTATT', 'KFZ',
+    ]),
     ('Bankomat', [
         'SPARKASSE SCHWABEN', 'BANKOMAT', 'GELDAUTOMAT',
     ]),
@@ -266,6 +269,8 @@ def categorize(txn):
 
     # ── Explicit payee-based overrides (checked before keyword scan) ───────────
     if amount < 0:
+        if 'AUTOKLINIK' in payee_up or 'GARAGE' in payee_up:
+            return 'Auto'
         if 'SPARKASSE SCHWABEN' in payee_up:
             return 'Bankomat'
         if payee_up in ('CARL BEKER', 'MARIA BEKER'):
