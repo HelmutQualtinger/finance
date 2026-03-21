@@ -139,6 +139,11 @@ for txn in transactions:
     elif 'ALLERGI' in pu:
         txn['payee'] = 'Allergieambulatorium'
 
+# Normalize Bankomat (ATM) payees
+for txn in transactions:
+    if 'SPARKASSE SCHWABEN' in txn['payee'].upper():
+        txn['payee'] = 'Sparkasse Schwaben-Bodensee (Bankomat)'
+
 # Normalize Lebensmittel payee variants
 for txn in transactions:
     pu = txn['payee'].upper()
@@ -187,6 +192,9 @@ EXPENSE_CATEGORIES = [
         'AOK', ' TK ', 'KRANKENKASSE', 'OPTIKER', 'AUGENARZT',
         'PHYSIOTHERAP', 'HEILPRAKT', 'LABOR ', 'SANITÄTS',
         'BARMER', 'DAK', 'BKK', 'IKK',
+    ]),
+    ('Bankomat', [
+        'SPARKASSE SCHWABEN', 'BANKOMAT', 'GELDAUTOMAT',
     ]),
     ('Kinder', [
         'CARL BEKER', 'MARIA BEKER',
@@ -258,6 +266,8 @@ def categorize(txn):
 
     # ── Explicit payee-based overrides (checked before keyword scan) ───────────
     if amount < 0:
+        if 'SPARKASSE SCHWABEN' in payee_up:
+            return 'Bankomat'
         if payee_up in ('CARL BEKER', 'MARIA BEKER'):
             return 'Kinder'
         if payee_up == 'AMAZON':
