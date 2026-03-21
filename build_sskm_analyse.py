@@ -139,6 +139,18 @@ for txn in transactions:
     elif 'ALLERGI' in pu:
         txn['payee'] = 'Allergieambulatorium'
 
+# Normalize Lebensmittel payee variants
+for txn in transactions:
+    pu = txn['payee'].upper()
+    if 'INTERSPAR' in pu and 'DORNBIRN' in pu:
+        txn['payee'] = 'Interspar Dornbirn'
+    elif 'INTERSPAR' in pu and 'FELDKIRCH' in pu:
+        txn['payee'] = 'Interspar Feldkirch'
+    elif 'ALDI' in pu and 'LINDAU' in pu:
+        txn['payee'] = 'Aldi Lindau'
+    elif 'KAUFLAND' in pu:
+        txn['payee'] = 'Kaufland'
+
 # ── Categorize ────────────────────────────────────────────────────────────────
 EXPENSE_CATEGORIES = [
     ('Lebensmittel', [
