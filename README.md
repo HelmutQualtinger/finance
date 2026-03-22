@@ -1,6 +1,6 @@
 # Finance — Asset & Commodity Price Data
 
-Financial data analysis: asset prices, commodity prices, UBS bank account and credit card analysis.
+Financial data analysis: asset prices, commodity prices, UBS bank account and credit card analysis, SSKM and PayPal analysis.
 
 ## 1. Monthly Asset Prices (`chf_usd_monthly.csv`)
 
@@ -63,20 +63,51 @@ Interactive HTML + PDF report from UBS credit card statement (2024–2026).
 | 2024 | CHF 2'146.69 | CHF 2'405.20 | +258.51 |
 | **Total** | **CHF 5'260.92** | **CHF 5'500.65** | **+239.73** |
 
-## 5. Gehaltsnachweise
+## 5. SSKM Analyse
+
+Interactive HTML + PDF report from Stadtsparkasse München account (2023–2026).
+
+| File | Description |
+|------|-------------|
+| `build_sskm_analyse.py` | Generiert `sskm_analyse.html` + `sskm_analyse.pdf` |
+| `sskm_analyse.html` | Interaktive HTML-Analyse (4 Themes, Jahr-Tabs, Tortendiagramme) |
+| `SSKM-23-26.html` | Roher Kontoauszug (Druckansicht von sskm.de, 2023–2026) |
+| `SSKM-23-26_files/` | CSS/JS-Begleitdateien für SSKM-23-26.html |
+
+## 6. PayPal Analyse
+
+Interactive HTML + PDF report from PayPal account (2023–2026).
+
+| File | Description |
+|------|-------------|
+| `build_paypal_analyse.py` | Generiert `paypal_analyse.html` + `paypal_analyse.pdf` |
+| `paypal_analyse.html` | Interaktive HTML-Analyse (4 Themes, Jahr-Tabs, Tortendiagramme) |
+
+## 7. Buchhaltung Übersicht
+
+| File | Description |
+|------|-------------|
+| `Buchhaltung/index.html` | Übersichtsseite mit Links zu allen Analysen und Rohdaten |
+| `Buchhaltung.tar.gz` | Komprimiertes Archiv (~2.9 MB, ~7.6 MB unkomprimiert) |
+
+```bash
+open Buchhaltung/index.html
+```
+
+## 8. Gehaltsnachweise
 
 | File | Description |
 |------|-------------|
 | `Payslip_2026_01_740_022704_00_1.pdf` | Gehaltsnachweis Januar 2026 |
 | `Payslip_2026_02_740_022704_00_1.pdf` | Gehaltsnachweis Februar 2026 |
 
-## 6. Pension Calculator
+## 9. Pension Calculator
 
 | File | Description |
 |------|-------------|
 | `pension.py` | Zinseszins-Rechner für monatliche Sparraten |
 
-## 7. Wettervorhersagen
+## 10. Wettervorhersagen
 
 Static 16-Tage-HTML-Berichte, erstellt im März 2026. Datenquellen:
 
@@ -98,7 +129,7 @@ Static 16-Tage-HTML-Berichte, erstellt im März 2026. Datenquellen:
 
 **Erstellung:** Die HTML-Berichte wurden mit Claude Code auf Basis von Open-Meteo-Daten (koordinatenbasierter API-Abruf) bzw. SRF-Meteo-Daten als statische Seiten generiert — keine Python-Scripts, direkt als HTML produziert.
 
-## 8. Reports
+## 11. Reports
 
 | File | Description |
 |------|-------------|
@@ -106,7 +137,7 @@ Static 16-Tage-HTML-Berichte, erstellt im März 2026. Datenquellen:
 | `wetterbericht_schweiz.docx` | Wetterbericht Schweiz |
 | `wetter_rebstein.docx` | Wetterbericht Rebstein |
 
-## 9. Playwright / JS Tools
+## 12. Playwright / JS Tools
 
 | File | Description |
 |------|-------------|
@@ -156,6 +187,8 @@ open pdf_analyse.html
 - **Food prices (DE)**: Eurostat HICP indices, anchored to 2020 retail prices
 - **UBS Kontoauszug**: `ubstrans.csv` (E-Banking Export) + `transactions (1).pdf` (32-seitiger PDF-Auszug)
 - **UBS Kreditkarte**: `transactions-KreditKarten.pdf` (10-seitiger PDF-Auszug, Karte 64744 D 001)
+- **SSKM**: `SSKM-23-26.html` (gespeicherte Druckansicht sskm.de, 2023–2026)
+- **PayPal**: `UU7L3WND9D75G-CSR-…PDF` (PayPal Kontoauszug Export 2023–2026)
 
 ## Requirements
 
