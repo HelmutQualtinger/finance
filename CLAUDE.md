@@ -132,6 +132,10 @@ open Buchhaltung/index.html
 - commite alle Änderungen mit `git commit -m "Beschreibung der Änderung"`
 - pushen mit `git push origin main`
 
+## Analyse-Regeln
+
+- Exclude self-transfers to/from Harald Beker's own accounts from transaction counts and totals (e.g. large inter-account transfers like CHF 150'000)
+
 # Arbeitsweise
 
 - Führe alle Änderungen direkt aus ohne vorher zu fragen
