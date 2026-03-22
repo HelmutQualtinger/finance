@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "HTTP Server (Static HTML)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8080"],
+      "port": 8080
+    },
+    {
+      "name": "Plot Monthly Assets",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["plot_monthly.py"],
+      "port": null
+    },
+    {
+      "name": "UBS Kontoauszug Analyse",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["analyze_ubs.py"],
+      "port": null
+    },
+    {
+      "name": "UBS PDF Analyse",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["build_pdf_analyse.py"],
+      "port": null
+    },
+    {
+      "name": "Kreditkarten Analyse",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["build_kreditkarten_analyse.py"],
+      "port": null
+    },
+    {
+      "name": "PayPal Analyse",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["build_paypal_analyse.py"],
+      "port": null
+    }
+  ]
+}
