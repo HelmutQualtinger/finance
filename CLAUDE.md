@@ -9,6 +9,13 @@ Financial data analysis and visualization project with three main areas:
 2. Quarterly commodity and consumer prices since 1990 (EUR, Germany-focused)
 3. UBS Kontoauszug analysis — interactive HTML + PDF reports from CSV and PDF sources
 4. UBS Kreditkarten analysis — interactive HTML + PDF reports from credit card PDF
+5. SSKM (Stadtsparkasse München) analysis — interactive HTML + PDF reports
+
+### Buchhaltung Ordner
+- `Buchhaltung/` — Unterordner mit Symlinks auf alle Analyse-Outputs und Rohdaten
+- `Buchhaltung/index.html` — Übersichtsseite mit Links zu allen Analysen und Rohdaten
+- `Buchhaltung/SSKM-23-26_files/` — Symlink auf `../SSKM-23-26_files/` (CSS/JS für SSKM-23-26.html)
+- `Buchhaltung.tar.gz` — Komprimiertes Archiv des Buchhaltung-Ordners (dereferenzierte Symlinks, ~7.6MB unkomprimiert, ~2.9MB komprimiert)
 
 ### Reports
 - `Gold_vs_Aktien_Bericht.docx` — Vergleichsbericht Gold vs. Aktien
@@ -49,6 +56,11 @@ Docx-Berichte: `wetterbericht_schweiz.docx`, `wetter_rebstein.docx`
 - HTML: 4 Themes, Jahr-Tabs, SVG-Tortendiagramme, aufklappbare Monatsdetails, PDF-Link im Header
 - PDF: ReportLab A4, matplotlib Tortendiagramme, Gegenpartei-Tabellen pro Jahr
 - Karte 64744 D 001 — Total: Belastung CHF 5'260.92, Gutschrift CHF 5'500.65
+
+### SSKM Analyse
+- `build_sskm_analyse.py` — Hardcoded transactions, generiert `sskm_analyse.html` + `sskm_analyse.pdf`
+- `SSKM-23-26.html` — Roher Kontoauszug (gespeicherte Druckansicht von sskm.de, 2023–2026)
+- `SSKM-23-26_files/` — CSS/JS-Begleitdateien für SSKM-23-26.html (nötig für korrekte Icon-Darstellung)
 
 ## Data
 
@@ -101,6 +113,13 @@ open pdf_analyse.html
 # Regenerate Kreditkarten HTML + PDF analysis
 python3 build_kreditkarten_analyse.py
 open kreditkarten_analyse.html
+
+# Regenerate SSKM HTML + PDF analysis
+python3 build_sskm_analyse.py
+open sskm_analyse.html
+
+# Open Buchhaltung overview
+open Buchhaltung/index.html
 ```
 
 ## Dependencies
