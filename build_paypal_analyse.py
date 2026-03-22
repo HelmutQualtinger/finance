@@ -486,11 +486,14 @@ body.green .tx-table td {{ border-color:#2a4a2a; }}
     <div class="header h1">PayPal Analyse</div>
     <div class="subtitle">01.04.2023 – 22.03.2026 &nbsp;|&nbsp; {len(transactions)} Transaktionen</div>
   </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="paypal_analyse.pdf" target="_blank" style="color:#fff;background:rgba(255,255,255,.15);padding:7px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.3);">📄 PDF</a>
   <div class="theme-toggles">
     <button class="theme-btn t-dark  active" onclick="setTheme('dark')">🌙 Dark</button>
     <button class="theme-btn t-light"        onclick="setTheme('light')">☀️ Light</button>
     <button class="theme-btn t-blue"         onclick="setTheme('blue')">🔵 Blue</button>
     <button class="theme-btn t-green"        onclick="setTheme('green')">🟢 Green</button>
+  </div>
   </div>
 </div>
 
