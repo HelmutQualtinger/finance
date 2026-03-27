@@ -5,55 +5,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wetterbericht Schärding — 16 Tage</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 15px; background: #f5f7fa; color: #333; }
-  h1 { text-align: center; color: #2c3e50; }
-  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  th { background: #2c3e50; color: #fff; padding: 12px 8px; font-size: 14px; }
-  td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #ecf0f1; font-size: 14px; }
-  tr:hover { background: #f0f4f8; }
-  .temp-max { color: #e74c3c; font-weight: bold; }
-  .temp-min { color: #3498db; font-weight: bold; }
-  .rain { color: #2980b9; }
-  .day-name { text-align: left; font-weight: 600; }
-  .source { text-align: center; color: #95a5a6; font-size: 12px; margin-top: 15px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  max-width: 840px; margin: 20px auto; padding: 0 15px;
+  background: #0d1117; color: #c9d1d9;
+}
+.banner {
+  width: 100%; border-radius: 12px; overflow: hidden;
+  margin-bottom: 24px; box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+  position: relative; height: 200px;
+}
+.banner img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 60%;
+  display: block; filter: brightness(0.55) saturate(1.1);
+}
+.banner-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+}
+.banner-title {
+  font-size: 2em; font-weight: 700; color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8); letter-spacing: 1px;
+  font-family: Georgia, serif;
+}
+.banner-sub {
+  font-size: 0.82em; color: #cce; letter-spacing: 2.5px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8); text-transform: uppercase;
+}
+.banner-coord {
+  font-size: 0.75em; color: #99aacc;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+.banner-photo-credit {
+  position: absolute; bottom: 5px; right: 10px;
+  font-size: 10px; color: rgba(200,210,230,0.6);
+}
+h1 {
+  text-align: center; color: #e6edf3; font-size: 1.5em; margin-bottom: 4px;
+}
+.subtitle {
+  text-align: center; color: #8b949e; margin-bottom: 22px; font-size: 0.93em;
+}
+h2 {
+  color: #58a6ff; font-size: 1.1em; margin: 28px 0 10px;
+  border-left: 3px solid #58a6ff; padding-left: 10px;
+}
+table {
+  width: 100%; border-collapse: collapse;
+  background: #161b22; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4); margin-bottom: 6px;
+}
+th {
+  background: #21262d; color: #8b949e; padding: 11px 8px;
+  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid #30363d;
+}
+td {
+  padding: 10px 8px; text-align: center;
+  border-bottom: 1px solid #21262d; font-size: 13px;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #1c2128; }
+.day-name { text-align: left; font-weight: 600; padding-left: 14px; color: #e6edf3; }
+.wknd td { background: #13181f; }
+.wknd:hover td { background: #1c2128; }
+.temp-max { color: #ff7b72; font-weight: bold; }
+.temp-min { color: #79c0ff; font-weight: bold; }
+.rain { color: #79c0ff; }
+.wind-cell {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1px; font-size: 12px;
+}
+.wind-arrow { font-size: 1.3em; line-height: 1; color: #d2a8ff; }
+.wind-kmh { color: #8b949e; font-size: 11px; }
+.wind-bft { font-size: 10px; color: #58a6ff; font-weight: 600; }
+.wind-dir { font-size: 11px; color: #c9d1d9; font-weight: 600; }
+
+/* Day sections (3h) */
+.day-header {
+  background: #161b22; color: #58a6ff;
+  text-align: center; padding: 9px 14px;
+  font-weight: 600; font-size: 13px; letter-spacing: 0.05em;
+  margin-top: 16px; border-radius: 8px 8px 0 0;
+  border: 1px solid #30363d; border-bottom: none;
+}
+.night td { background: #0d1117; }
+.night:hover td { background: #161b22; }
+.source {
+  text-align: center; color: #484f58; font-size: 11px;
+  margin-top: 16px; padding-bottom: 12px; line-height: 1.7;
+}
 </style>
 </head>
 <body>
-<h1>Wetterbericht Sch&auml;rding, Ober&ouml;sterreich</h1>
-<p class="subtitle">16-Tage-Vorhersage — 16. bis 31. M&auml;rz 2026</p>
+
+<div class="banner">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Sch%C3%A4rding_-_Obere_Stadtplatz.JPG/1280px-Sch%C3%A4rding_-_Obere_Stadtplatz.JPG" alt="Schärding Stadtplatz" loading="eager">
+  <div class="banner-overlay">
+    <div class="banner-title">Schärding</div>
+    <div class="banner-sub">Stadtplatz &middot; Oberösterreich</div>
+    <div class="banner-coord">48.45&deg;N &nbsp;&middot;&nbsp; 13.43&deg;E &nbsp;&middot;&nbsp; 303 m ü.M.</div>
+  </div>
+  <div class="banner-photo-credit">© C.Stadler/Bwag, CC BY-SA 4.0 &nbsp;|&nbsp; Wikimedia Commons</div>
+</div>
+
+<h1>Wetterbericht Schärding, Oberösterreich</h1>
+<p class="subtitle">16-Tage-Vorhersage &mdash; 27. März 2026 bis 11. April 2026</p>
 
 <table>
 <thead>
 <tr>
-  <th>Tag</th>
-  <th>Wetter</th>
-  <th>Max &deg;C</th>
-  <th>Min &deg;C</th>
-  <th>Niederschlag</th>
-  <th>Wind max</th>
+  <th>Tag</th><th>Wetter</th><th>Max °C</th><th>Min °C</th>
+  <th>Niederschlag</th><th>Wind</th>
 </tr>
 </thead>
 <tbody>
-<tr><td class="day-name">Mo 16.03.</td><td>🌨️ Schneeschauer</td><td class="temp-max">9.4</td><td class="temp-min">2.6</td><td class="rain">3.8 mm</td><td>20.9 km/h</td></tr>
-<tr><td class="day-name">Di 17.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">8.6</td><td class="temp-min">1.5</td><td class="rain">0.1 mm</td><td>12.6 km/h</td></tr>
-<tr><td class="day-name">Mi 18.03.</td><td>🌫️ Nebel</td><td class="temp-max">12.8</td><td class="temp-min">0.2</td><td class="rain">0.0 mm</td><td>15.5 km/h</td></tr>
-<tr><td class="day-name">Do 19.03.</td><td>⛅ Teils bew&ouml;lkt</td><td class="temp-max">14.1</td><td class="temp-min">0.9</td><td class="rain">0.0 mm</td><td>9.6 km/h</td></tr>
-<tr><td class="day-name">Fr 20.03.</td><td>🌧️ Regen</td><td class="temp-max">12.7</td><td class="temp-min">0.4</td><td class="rain">1.9 mm</td><td>7.6 km/h</td></tr>
-<tr><td class="day-name">Sa 21.03.</td><td>🌧️ Regen</td><td class="temp-max">12.3</td><td class="temp-min">4.1</td><td class="rain">3.2 mm</td><td>23.9 km/h</td></tr>
-<tr><td class="day-name">So 22.03.</td><td>☁️ Bew&ouml;lkt</td><td class="temp-max">14.1</td><td class="temp-min">5.6</td><td class="rain">0.0 mm</td><td>25.1 km/h</td></tr>
-<tr><td class="day-name">Mo 23.03.</td><td>⛅ Teils bew&ouml;lkt</td><td class="temp-max">14.9</td><td class="temp-min">3.6</td><td class="rain">0.0 mm</td><td>16.7 km/h</td></tr>
-<tr><td class="day-name">Di 24.03.</td><td>☁️ Bew&ouml;lkt</td><td class="temp-max">16.0</td><td class="temp-min">4.1</td><td class="rain">0.0 mm</td><td>6.5 km/h</td></tr>
-<tr><td class="day-name">Mi 25.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">12.6</td><td class="temp-min">5.8</td><td class="rain">1.9 mm</td><td>6.8 km/h</td></tr>
-<tr><td class="day-name">Do 26.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">9.1</td><td class="temp-min">7.0</td><td class="rain">3.2 mm</td><td>22.4 km/h</td></tr>
-<tr><td class="day-name">Fr 27.03.</td><td>☁️ Bew&ouml;lkt</td><td class="temp-max">15.1</td><td class="temp-min">8.5</td><td class="rain">0.0 mm</td><td>28.6 km/h</td></tr>
-<tr><td class="day-name">Sa 28.03.</td><td>⛅ Teils bew&ouml;lkt</td><td class="temp-max">16.8</td><td class="temp-min">8.1</td><td class="rain">0.0 mm</td><td>22.4 km/h</td></tr>
-<tr><td class="day-name">So 29.03.</td><td>☁️ Bew&ouml;lkt</td><td class="temp-max">16.6</td><td class="temp-min">5.4</td><td class="rain">0.0 mm</td><td>14.1 km/h</td></tr>
-<tr><td class="day-name">Mo 30.03.</td><td>☀️ Sonnig</td><td class="temp-max">16.1</td><td class="temp-min">5.8</td><td class="rain">0.0 mm</td><td>7.6 km/h</td></tr>
-<tr><td class="day-name">Di 31.03.</td><td>☀️ Sonnig</td><td class="temp-max">16.4</td><td class="temp-min">4.8</td><td class="rain">0.0 mm</td><td>26.8 km/h</td></tr>
+<tr><td class="day-name">Fr 27.03.</td><td>☁️ Bewölkt</td><td class="temp-max">8.3</td><td class="temp-min">-0.1</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">↘</span><span class="wind-dir">NW</span><span class="wind-kmh">18 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr><tr class="wknd"><td class="day-name">Sa 28.03.</td><td>🌫️ Nebel</td><td class="temp-max">8.7</td><td class="temp-min">-1.5</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">↘</span><span class="wind-dir">NW</span><span class="wind-kmh">15 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr><tr class="wknd"><td class="day-name">So 29.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">7.0</td><td class="temp-min">1.8</td><td class="rain">0.1 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">13 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr><tr><td class="day-name">Mo 30.03.</td><td>🌦️ Regenschauer</td><td class="temp-max">6.3</td><td class="temp-min">0.7</td><td class="rain">6.1 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">22 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr><td class="day-name">Di 31.03.</td><td>🌦️ Regenschauer</td><td class="temp-max">7.4</td><td class="temp-min">1.4</td><td class="rain">1.5 mm</td><td><div class="wind-cell"><span class="wind-arrow">↘</span><span class="wind-dir">NW</span><span class="wind-kmh">18 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr><tr><td class="day-name">Mi 01.04.</td><td>🌫️ Nebel</td><td class="temp-max">9.9</td><td class="temp-min">1.4</td><td class="rain">0.75 mm</td><td><div class="wind-cell"><span class="wind-arrow">↘</span><span class="wind-dir">NW</span><span class="wind-kmh">10 km/h</span><span class="wind-bft">Bft 2</span></div></td></tr><tr><td class="day-name">Do 02.04.</td><td>🌫️ Nebel</td><td class="temp-max">9.7</td><td class="temp-min">0.2</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">13 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr><tr><td class="day-name">Fr 03.04.</td><td>🌦️ Leichter Nieselregen</td><td class="temp-max">10.5</td><td class="temp-min">2.9</td><td class="rain">0.7 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">24 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr class="wknd"><td class="day-name">Sa 04.04.</td><td>🌦️ Leichter Nieselregen</td><td class="temp-max">7.8</td><td class="temp-min">0.7</td><td class="rain">1.2 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">30 km/h</span><span class="wind-bft">Bft 5</span></div></td></tr><tr class="wknd"><td class="day-name">So 05.04.</td><td>🌦️ Leichter Nieselregen</td><td class="temp-max">10.2</td><td class="temp-min">5.1</td><td class="rain">0.5 mm</td><td><div class="wind-cell"><span class="wind-arrow">→</span><span class="wind-dir">W</span><span class="wind-kmh">22 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr><td class="day-name">Mo 06.04.</td><td>☁️ Bewölkt</td><td class="temp-max">16.9</td><td class="temp-min">3.2</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">←</span><span class="wind-dir">O</span><span class="wind-kmh">21 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr><td class="day-name">Di 07.04.</td><td>☀️ Klar</td><td class="temp-max">13.6</td><td class="temp-min">4.0</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">←</span><span class="wind-dir">O</span><span class="wind-kmh">36 km/h</span><span class="wind-bft">Bft 5</span></div></td></tr><tr><td class="day-name">Mi 08.04.</td><td>☀️ Klar</td><td class="temp-max">16.3</td><td class="temp-min">5.0</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">↖</span><span class="wind-dir">SO</span><span class="wind-kmh">32 km/h</span><span class="wind-bft">Bft 5</span></div></td></tr><tr><td class="day-name">Do 09.04.</td><td>☀️ Klar</td><td class="temp-max">17.3</td><td class="temp-min">4.6</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">←</span><span class="wind-dir">O</span><span class="wind-kmh">24 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr><td class="day-name">Fr 10.04.</td><td>☀️ Klar</td><td class="temp-max">17.7</td><td class="temp-min">6.0</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">←</span><span class="wind-dir">O</span><span class="wind-kmh">23 km/h</span><span class="wind-bft">Bft 4</span></div></td></tr><tr class="wknd"><td class="day-name">Sa 11.04.</td><td>⛅ Teils bewölkt</td><td class="temp-max">18.3</td><td class="temp-min">5.6</td><td class="rain">0.0 mm</td><td><div class="wind-cell"><span class="wind-arrow">←</span><span class="wind-dir">O</span><span class="wind-kmh">17 km/h</span><span class="wind-bft">Bft 3</span></div></td></tr>
 </tbody>
 </table>
 
-<p class="source">Datenquelle: Open-Meteo.com (48.45°N, 13.43°E, 303m) — erstellt am 16. M&auml;rz 2026</p>
+<p class="source">
+  Datenquelle: Open-Meteo.com (48.45°N, 13.43°E, 303 m ü.M.) — erstellt am 27. März 2026<br>
+  Foto: © C.Stadler/Bwag, CC BY-SA 4.0, Wikimedia Commons
+</p>
 </body>
 </html>
