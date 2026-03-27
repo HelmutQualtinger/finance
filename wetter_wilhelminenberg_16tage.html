@@ -3,57 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wetterbericht Wien Wilhelminenberg — 16 Tage</title>
+<title>Wetterbericht Wien Wilhelminenberg – 16 Tage</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 15px; background: #f5f7fa; color: #333; }
-  h1 { text-align: center; color: #2c3e50; }
-  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  th { background: #2c3e50; color: #fff; padding: 12px 8px; font-size: 14px; }
-  td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #ecf0f1; font-size: 14px; }
-  tr:hover { background: #f0f4f8; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 820px; margin: 20px auto;
+         padding: 0 12px; background: #f0f4f8; color: #2c3e50; }
+  .card { background: #fff; border-radius: 10px; overflow: hidden;
+           box-shadow: 0 4px 16px rgba(0,0,0,0.12); margin-bottom: 20px; }
+  .subtitle { text-align: center; color: #7f8c8d; padding: 12px 0 6px; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #2c3e50; color: #fff; padding: 10px 8px; font-size: 13px; }
+  td { padding: 9px 8px; border-bottom: 1px solid #ecf0f1; font-size: 13px; text-align: center; vertical-align: middle; }
+  tr:hover { background: #f7f9fc; }
+  tr:nth-child(odd) { background: #fafbfc; }
+  tr:nth-child(odd):hover { background: #f0f4f8; }
+  .day-name { text-align: left; font-weight: 600; white-space: nowrap; }
   .temp-max { color: #e74c3c; font-weight: bold; }
-  .temp-min { color: #3498db; font-weight: bold; }
-  .rain { color: #2980b9; }
-  .day-name { text-align: left; font-weight: 600; }
-  .source { text-align: center; color: #95a5a6; font-size: 12px; margin-top: 15px; }
+  .temp-min { color: #2980b9; font-weight: bold; }
+  .source { text-align: center; color: #95a5a6; font-size: 11px; padding: 10px; }
 </style>
 </head>
 <body>
-<h1>Wetterbericht Wien Wilhelminenberg</h1>
-<p class="subtitle">16-Tage-Vorhersage — 16. bis 31. März 2026</p>
-
+<div class="card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" style="width:100%;display:block;border-radius:10px 10px 0 0">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a3a5c"/>
+      <stop offset="60%" stop-color="#2e6da4"/>
+      <stop offset="100%" stop-color="#a8c8e8"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2d5a27"/>
+      <stop offset="100%" stop-color="#1a3a18"/>
+    </linearGradient>
+  </defs>
+  <!-- Himmel -->
+  <rect width="800" height="200" fill="url(#sky)"/>
+  <!-- Sterne/Punkte -->
+  <circle cx="50" cy="20" r="1.2" fill="white" opacity="0.8"/>
+  <circle cx="120" cy="35" r="1" fill="white" opacity="0.6"/>
+  <circle cx="200" cy="15" r="1.4" fill="white" opacity="0.7"/>
+  <circle cx="350" cy="25" r="1" fill="white" opacity="0.5"/>
+  <circle cx="600" cy="18" r="1.2" fill="white" opacity="0.8"/>
+  <circle cx="720" cy="30" r="0.9" fill="white" opacity="0.6"/>
+  <circle cx="770" cy="12" r="1.1" fill="white" opacity="0.7"/>
+  <!-- Mond -->
+  <circle cx="680" cy="35" r="18" fill="#f5e642" opacity="0.9"/>
+  <circle cx="693" cy="28" r="14" fill="#2e6da4"/>
+  <!-- Wolken -->
+  <ellipse cx="150" cy="55" rx="60" ry="18" fill="white" opacity="0.15"/>
+  <ellipse cx="190" cy="50" rx="40" ry="14" fill="white" opacity="0.1"/>
+  <ellipse cx="500" cy="65" rx="70" ry="16" fill="white" opacity="0.12"/>
+  <!-- Hügel Hintergrund -->
+  <path d="M0,160 Q100,100 200,120 Q300,90 400,110 Q500,95 600,115 Q700,100 800,130 L800,200 L0,200 Z" fill="#1a3a18" opacity="0.6"/>
+  <!-- Haupthügel Wilhelminenberg -->
+  <path d="M0,185 Q50,130 150,120 Q250,100 350,115 Q430,108 500,120 Q580,115 650,130 Q720,140 800,150 L800,200 L0,200 Z" fill="url(#hill)"/>
+  <!-- Bäume links -->
+  <g fill="#1a3a18">
+    <polygon points="40,155 55,110 70,155"/>
+    <polygon points="60,160 78,112 96,160"/>
+    <polygon points="85,158 100,115 115,158"/>
+    <polygon points="110,162 127,118 144,162"/>
+  </g>
+  <!-- Schloss Wilhelminenberg (Mitte) -->
+  <g transform="translate(330,70)">
+    <!-- Hauptgebäude -->
+    <rect x="0" y="50" width="140" height="65" fill="#d4b896"/>
+    <rect x="10" y="55" width="120" height="60" fill="#c9a87c"/>
+    <!-- Mittelturm -->
+    <rect x="55" y="20" width="30" height="50" fill="#b8956a"/>
+    <!-- Turmspitze -->
+    <polygon points="70,0 55,20 85,20" fill="#8b4513"/>
+    <!-- Flagge -->
+    <line x1="70" y1="0" x2="70" y2="-15" stroke="#555" stroke-width="1.5"/>
+    <polygon points="70,-15 85,-8 70,-1" fill="#cc0000"/>
+    <!-- Fenster -->
+    <rect x="20" y="70" width="15" height="20" fill="#4a6fa5" rx="2"/>
+    <rect x="45" y="70" width="15" height="20" fill="#4a6fa5" rx="2"/>
+    <rect x="80" y="70" width="15" height="20" fill="#4a6fa5" rx="2"/>
+    <rect x="105" y="70" width="15" height="20" fill="#4a6fa5" rx="2"/>
+    <!-- Türmchen links -->
+    <rect x="-15" y="35" width="20" height="45" fill="#b8956a"/>
+    <polygon points="-5,20 -15,35 5,35" fill="#8b4513"/>
+    <!-- Türmchen rechts -->
+    <rect x="135" y="35" width="20" height="45" fill="#b8956a"/>
+    <polygon points="145,20 135,35 155,35" fill="#8b4513"/>
+    <!-- Eingang -->
+    <rect x="60" y="90" width="20" height="25" fill="#3a2a1a" rx="2"/>
+    <!-- Sockel -->
+    <rect x="-5" y="115" width="150" height="8" fill="#a08060"/>
+  </g>
+  <!-- Bäume rechts -->
+  <g fill="#1a3a18">
+    <polygon points="610,148 627,105 644,148"/>
+    <polygon points="635,152 652,108 669,152"/>
+    <polygon points="660,150 678,106 696,150"/>
+    <polygon points="690,155 708,112 726,155"/>
+  </g>
+  <!-- Wien Stadtsilhouette im Hintergrund -->
+  <g fill="#1a3a5c" opacity="0.4">
+    <rect x="20" y="140" width="8" height="30"/>
+    <rect x="35" y="135" width="12" height="35"/>
+    <rect x="750" y="138" width="10" height="32"/>
+    <rect x="768" y="132" width="14" height="38"/>
+    <rect x="785" y="140" width="8" height="30"/>
+  </g>
+  <!-- Titel -->
+  <text x="400" y="185" font-family="Georgia,serif" font-size="22" fill="white"
+        text-anchor="middle" opacity="0.95" font-weight="bold"
+        style="text-shadow:1px 1px 3px rgba(0,0,0,0.8)">
+    Wien · Wilhelminenberg · 366 m
+  </text>
+</svg>
+<p class="subtitle">16-Tage-Vorhersage · 27. Mär – 11. Apr 2026 · erstellt am 27. March 2026, 17:34</p>
 <table>
 <thead>
 <tr>
-  <th>Tag</th>
+  <th style="text-align:left">Tag</th>
   <th>Wetter</th>
-  <th>Max &deg;C</th>
-  <th>Min &deg;C</th>
+  <th>Max °C</th>
+  <th>Min °C</th>
   <th>Niederschlag</th>
-  <th>Wind max</th>
+  <th>Wind &amp; Richtung</th>
 </tr>
 </thead>
 <tbody>
-<tr><td class="day-name">Mo 16.03.</td><td>🌦️ Regenschauer</td><td class="temp-max">10.0</td><td class="temp-min">4.2</td><td class="rain">0.8 mm</td><td>24.5 km/h</td></tr>
-<tr><td class="day-name">Di 17.03.</td><td>🌦️ Regenschauer</td><td class="temp-max">7.9</td><td class="temp-min">1.8</td><td class="rain">2.6 mm</td><td>18.0 km/h</td></tr>
-<tr><td class="day-name">Mi 18.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">13.9</td><td class="temp-min">2.7</td><td class="rain">0.2 mm</td><td>16.0 km/h</td></tr>
-<tr><td class="day-name">Do 19.03.</td><td>☀️ Überwiegend klar</td><td class="temp-max">12.6</td><td class="temp-min">3.0</td><td class="rain">0.0 mm</td><td>11.5 km/h</td></tr>
-<tr><td class="day-name">Fr 20.03.</td><td>🌧️ Regen</td><td class="temp-max">12.5</td><td class="temp-min">4.6</td><td class="rain">1.4 mm</td><td>14.3 km/h</td></tr>
-<tr><td class="day-name">Sa 21.03.</td><td>☁️ Bewölkt</td><td class="temp-max">11.5</td><td class="temp-min">2.8</td><td class="rain">0.4 mm</td><td>13.7 km/h</td></tr>
-<tr><td class="day-name">So 22.03.</td><td>☁️ Bewölkt</td><td class="temp-max">12.4</td><td class="temp-min">3.7</td><td class="rain">0.0 mm</td><td>14.6 km/h</td></tr>
-<tr><td class="day-name">Mo 23.03.</td><td>🌧️ Regen</td><td class="temp-max">12.6</td><td class="temp-min">5.6</td><td class="rain">0.0 mm</td><td>18.8 km/h</td></tr>
-<tr><td class="day-name">Di 24.03.</td><td>☁️ Bewölkt</td><td class="temp-max">14.4</td><td class="temp-min">5.0</td><td class="rain">0.0 mm</td><td>16.1 km/h</td></tr>
-<tr><td class="day-name">Mi 25.03.</td><td>🌦️ Nieselregen</td><td class="temp-max">13.6</td><td class="temp-min">6.1</td><td class="rain">0.2 mm</td><td>9.6 km/h</td></tr>
-<tr><td class="day-name">Do 26.03.</td><td>🌧️ Regen</td><td class="temp-max">14.1</td><td class="temp-min">7.9</td><td class="rain">3.1 mm</td><td>10.8 km/h</td></tr>
-<tr><td class="day-name">Fr 27.03.</td><td>☁️ Bewölkt</td><td class="temp-max">15.8</td><td class="temp-min">8.9</td><td class="rain">0.0 mm</td><td>12.0 km/h</td></tr>
-<tr><td class="day-name">Sa 28.03.</td><td>☁️ Bewölkt</td><td class="temp-max">15.0</td><td class="temp-min">8.8</td><td class="rain">0.0 mm</td><td>14.3 km/h</td></tr>
-<tr><td class="day-name">So 29.03.</td><td>☁️ Bewölkt</td><td class="temp-max">16.1</td><td class="temp-min">6.2</td><td class="rain">0.0 mm</td><td>21.2 km/h</td></tr>
-<tr><td class="day-name">Mo 30.03.</td><td>⛅ Teils bewölkt</td><td class="temp-max">14.7</td><td class="temp-min">5.6</td><td class="rain">0.0 mm</td><td>12.9 km/h</td></tr>
-<tr><td class="day-name">Di 31.03.</td><td>☁️ Bewölkt</td><td class="temp-max">15.7</td><td class="temp-min">6.9</td><td class="rain">0.0 mm</td><td>26.9 km/h</td></tr>
+<tr><td class="day-name">Fr 27.03.</td><td>❄️ Leichter Schnee</td><td class="temp-max">5.0</td><td class="temp-min">1.4</td><td><span style="color:#2980b9">1.4 mm</span></td><td><span title="329° | 28 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(329 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Sa 28.03.</td><td>☁️ Bewölkt</td><td class="temp-max">6.4</td><td class="temp-min">0.9</td><td><span style="color:#aaa">—</span></td><td><span title="308° | 24 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(308 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">So 29.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">5.3</td><td class="temp-min">2.2</td><td><span style="color:#2980b9">6.5 mm</span></td><td><span title="306° | 24 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(306 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Mo 30.03.</td><td>🌧️ Leichter Regen</td><td class="temp-max">8.0</td><td class="temp-min">2.3</td><td><span style="color:#2980b9">0.3 mm</span></td><td><span title="286° | 22 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(286 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Di 31.03.</td><td>☁️ Bewölkt</td><td class="temp-max">9.3</td><td class="temp-min">2.3</td><td><span style="color:#aaa">—</span></td><td><span title="306° | 20 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(306 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Mi 01.04.</td><td>☁️ Bewölkt</td><td class="temp-max">10.5</td><td class="temp-min">2.0</td><td><span style="color:#aaa">—</span></td><td><span title="2° | 19 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(2 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Do 02.04.</td><td>🌧️ Leichter Regen</td><td class="temp-max">10.6</td><td class="temp-min">3.8</td><td><span style="color:#2980b9">1.0 mm</span></td><td><span title="329° | 17 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(329 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Fr 03.04.</td><td>🌧️ Leichter Regen</td><td class="temp-max">8.9</td><td class="temp-min">6.2</td><td><span style="color:#2980b9">1.8 mm</span></td><td><span title="277° | 16 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(277 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Sa 04.04.</td><td>🌧️ Leichter Regen</td><td class="temp-max">8.4</td><td class="temp-min">3.4</td><td><span style="color:#2980b9">0.7 mm</span></td><td><span title="296° | 23 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(296 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">So 05.04.</td><td>☁️ Bewölkt</td><td class="temp-max">13.2</td><td class="temp-min">4.1</td><td><span style="color:#aaa">—</span></td><td><span title="302° | 28 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(302 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Mo 06.04.</td><td>☁️ Bewölkt</td><td class="temp-max">13.9</td><td class="temp-min">4.5</td><td><span style="color:#aaa">—</span></td><td><span title="355° | 14 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(355 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Di 07.04.</td><td>🌤️ Überwiegend klar</td><td class="temp-max">11.6</td><td class="temp-min">3.1</td><td><span style="color:#aaa">—</span></td><td><span title="125° | 17 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(125 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr><tr><td class="day-name">Mi 08.04.</td><td>⛅ Teils bewölkt</td><td class="temp-max">15.1</td><td class="temp-min">5.4</td><td><span style="color:#aaa">—</span></td><td><span title="132° | 20 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(132 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Do 09.04.</td><td>⛅ Teils bewölkt</td><td class="temp-max">15.7</td><td class="temp-min">8.0</td><td><span style="color:#aaa">—</span></td><td><span title="135° | 25 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(135 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Fr 10.04.</td><td>☀️ Klar</td><td class="temp-max">16.8</td><td class="temp-min">7.2</td><td><span style="color:#aaa">—</span></td><td><span title="133° | 24 km/h | Bft 4 (Mäßige Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(133 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 4</small></span></td></tr><tr><td class="day-name">Sa 11.04.</td><td>☁️ Bewölkt</td><td class="temp-max">18.6</td><td class="temp-min">8.0</td><td><span style="color:#aaa">—</span></td><td><span title="118° | 15 km/h | Bft 3 (Schwache Brise)" style="display:inline-flex;align-items:center;gap:4px;"><svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0"><circle cx="11" cy="11" r="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/><g transform="rotate(118 11 11)"><polygon points="11,2 8,14 11,12 14,14" fill="#f39c12"/></g></svg><small style="color:#555;font-size:11px">Bft 3</small></span></td></tr>
 </tbody>
 </table>
-
-<p class="source">Datenquelle: Open-Meteo.com (48.22°N, 16.28°E, 366m) — erstellt am 16. März 2026</p>
+<p class="source">Datenquelle: Open-Meteo.com (48.22°N, 16.28°E, 366m) · Windfahne zeigt Herkunftsrichtung · Beaufort-Skala</p>
+</div>
 </body>
 </html>
