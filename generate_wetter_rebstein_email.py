@@ -337,23 +337,12 @@ html = f"""<!DOCTYPE html>
   <tr>
     <td colspan="2" style="background:#12152a;padding:12px 20px;
         font-size:15px;font-weight:700;color:#7090e0;letter-spacing:0.5px;">
-      ⏱ 72-Stunden-Vorhersage · Tagesübersicht (3h-Intervalle)
+      ⏱ 72-Stunden-Vorhersage (3h-Intervalle)
     </td>
   </tr>
 
   <!-- 72h horizontal (pro Tag) -->
   {horiz_72}
-
-  <!-- 72h vertikal Titel -->
-  <tr>
-    <td colspan="2" style="background:#12152a;padding:12px 20px;
-        font-size:15px;font-weight:700;color:#7090e0;letter-spacing:0.5px;">
-      ⏱ 72-Stunden-Vorhersage · Detailansicht
-    </td>
-  </tr>
-
-  <!-- 72h Zeilen vertikal -->
-  {rows_72}
 
   <!-- 14-Tage Titel -->
   <tr>
