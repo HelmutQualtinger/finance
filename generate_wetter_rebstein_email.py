@@ -228,6 +228,53 @@ for h in times_72:
     </td>
   </tr>'''
 
+# ── 72h horizontal (pro Tag eine Zeile) ──────────────────────────
+from itertools import groupby
+WOCHENTAG_LANG = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"]
+MONAT_LANG = ["","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]
+
+def h_cell(h):
+    emoji, beschr = wmo(h["code"])
+    b = beaufort(h["wind"])
+    bg = temp_color(h["temp"])
+    rain_str = f"<br>💧{h['rain']:.1f}" if h["rain"] and h["rain"] > 0.05 else ""
+    return f'''<td style="background:{bg};border:1px solid #1a1d2e;padding:8px 4px;
+        text-align:center;vertical-align:top;width:12.5%;">
+      <div style="font-size:11px;font-weight:700;color:#aabbdd;">{h["dt"].strftime("%H:%M")}</div>
+      <div style="font-size:22px;margin:3px 0;">{emoji}</div>
+      <div style="font-size:13px;font-weight:700;color:#fff;">{h["temp"]:.0f}°</div>
+      <div style="font-size:10px;color:#8899bb;">gef. {h["feels"]:.0f}°</div>
+      <div style="font-size:10px;color:#99aacc;margin-top:2px;">
+        💨{winddir(h["wdir"])}<br>{h["wind"]:.0f}km/h<br>Bft{b}{rain_str}
+      </div>
+    </td>'''
+
+horiz_72 = ""
+for day_date, slots in groupby(times_72, key=lambda h: h["dt"].date()):
+    slots = list(slots)
+    day_dt = slots[0]["dt"]
+    day_label = f"{WOCHENTAG_LANG[day_dt.weekday()]}, {day_dt.day}. {MONAT_LANG[day_dt.month]} {day_dt.year}"
+    cells = "".join(h_cell(h) for h in slots)
+    # Leere Zellen auffüllen falls < 8 Slots
+    empty = 8 - len(slots)
+    for _ in range(empty):
+        cells += '<td style="background:#0f1117;border:1px solid #1a1d2e;"></td>'
+    horiz_72 += f'''
+  <tr>
+    <td colspan="2" style="background:#1e2130;padding:6px 16px;
+        font-size:12px;font-weight:700;color:#8899bb;letter-spacing:1px;
+        text-transform:uppercase;border-top:1px solid #2a2d4e;">
+      {day_label}
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" style="background:#0f1117;padding:4px 8px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+        <tr>{cells}</tr>
+      </table>
+    </td>
+  </tr>'''
+
 # ── 14-Tage 2×7 ──────────────────────────────────────────────────
 def day_cell(d):
     emoji, beschr = wmo(d["code"])
@@ -286,15 +333,26 @@ html = f"""<!DOCTYPE html>
     </td>
   </tr>
 
-  <!-- 72h Titel -->
+  <!-- 72h horizontal Titel -->
   <tr>
     <td colspan="2" style="background:#12152a;padding:12px 20px;
         font-size:15px;font-weight:700;color:#7090e0;letter-spacing:0.5px;">
-      ⏱ 72-Stunden-Vorhersage (3h-Intervalle)
+      ⏱ 72-Stunden-Vorhersage · Tagesübersicht (3h-Intervalle)
     </td>
   </tr>
 
-  <!-- 72h Zeilen -->
+  <!-- 72h horizontal (pro Tag) -->
+  {horiz_72}
+
+  <!-- 72h vertikal Titel -->
+  <tr>
+    <td colspan="2" style="background:#12152a;padding:12px 20px;
+        font-size:15px;font-weight:700;color:#7090e0;letter-spacing:0.5px;">
+      ⏱ 72-Stunden-Vorhersage · Detailansicht
+    </td>
+  </tr>
+
+  <!-- 72h Zeilen vertikal -->
   {rows_72}
 
   <!-- 14-Tage Titel -->

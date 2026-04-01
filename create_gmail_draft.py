@@ -2,9 +2,7 @@
 """
 Erstellt Gmail-Entwurf mit dem Wetterbericht via IMAP.
 """
-import imaplib, email.mime.multipart, email.mime.text
-from email.mime.base import MIMEBase
-from email import encoders
+import imaplib, email.mime.multipart, email.mime.text, email.utils
 from datetime import datetime
 
 # Credentials
@@ -37,25 +35,12 @@ print("  Eingeloggt.")
 
 # Draft-Ordner finden
 typ, folders = imap.list()
-draft_folder = None
-for f in folders:
-    decoded = f.decode()
-    if "Draft" in decoded or "Entwurf" in decoded:
-        # Ordnernamen extrahieren
-        parts = decoded.split('"')
-        name = parts[-2] if len(parts) > 1 else decoded.split()[-1]
-        draft_folder = name
-        break
-
-if not draft_folder:
-    draft_folder = "[Gmail]/Drafts"
-
+# Gmail Entwürfe-Ordner (IMAP-UTF7: ü = &APw-)
+draft_folder = '"[Google Mail]/Entw&APw-rfe"'
 print(f"  Draft-Ordner: {draft_folder}")
 
 # Nachricht in Drafts anhängen
-import time
-date_time = imaplib.Time2Internaldate(time.time())
-result = imap.append(draft_folder, "\\Draft", None, raw)
+result = imap.append(draft_folder, r"\Draft", None, raw)
 print(f"  Ergebnis: {result}")
 
 imap.logout()
