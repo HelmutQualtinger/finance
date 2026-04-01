@@ -220,23 +220,7 @@ const prices2025 = [2413.6,2412.3,2399.1,2404.4,2423.2,2444.8,2470.3,2451.0,2452
 const dates2026 = ["2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15","2026-01-16","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-03","2026-02-04","2026-02-05","2026-02-06","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-30","2026-04-01"];
 const prices2026 = [3417.1,3520.2,3550.4,3539.4,3549.3,3587.8,3690.5,3659.2,3705.7,3691.7,3686.4,3797.6,3814.7,3909.3,3926.2,3951.3,3948.3,4046.2,4072.5,3603.4,3575.8,3820.0,3817.0,3778.8,3850.5,3918.6,3838.5,3897.9,3796.9,3864.7,3757.9,3840.6,3842.4,3922.7,4016.5,3991.8,4028.3,3997.0,4044.4,4074.2,3977.2,4003.6,3946.6,4017.4,3977.6,4068.1,4023.2,3999.2,3967.9,3944.9,3941.0,3837.4,3646.7,3604.7,3469.6,3459.6,3585.2,3463.4,3569.7,3620.3,3779.0];
 
-// Build 30-day rolling volatility for 2026
-function rollingVol(prices, window=20) {
-  const vols = [];
-  for (let i = window; i <= prices.length; i++) {
-    const slice = prices.slice(i-window, i);
-    const rets = slice.slice(1).map((p,j) => Math.log(p/slice[j]));
-    const mean = rets.reduce((a,b)=>a+b,0)/rets.length;
-    const variance = rets.reduce((a,r)=>a+(r-mean)**2,0)/(rets.length-1);
-    vols.push(Math.sqrt(variance)*Math.sqrt(252)*100);
-  }
-  return vols;
-}
-
-const allDates  = [...dates2025, ...dates2026];
-const allPrices = [...prices2025, ...prices2026];
-const rvDates   = allDates.slice(20);
-const rvVols    = rollingVol(allPrices, 20);
+const OZ_TO_KG = 1000 / 31.1035; // ≈ 32.1507
 
 // ── Main price chart ──
 const trace2025 = {
@@ -244,36 +228,43 @@ const trace2025 = {
   type: 'scatter', mode: 'lines',
   line: { color: '#c89020', width: 2 },
   fill: 'tozeroy', fillcolor: 'rgba(200,144,32,0.07)',
-  hovertemplate: '<b>%{x}</b><br>%{y:,.0f} CHF/oz<extra>2025</extra>'
+  hovertemplate: '<b>%{x}</b><br>%{y:,.0f} CHF/oz  (%{customdata:,.0f} CHF/kg)<extra>2025</extra>',
+  customdata: prices2025.map(p => p * OZ_TO_KG)
 };
 const trace2026 = {
   x: dates2026, y: prices2026, name: '2026 YTD',
   type: 'scatter', mode: 'lines',
   line: { color: '#f0c040', width: 2.5 },
   fill: 'tozeroy', fillcolor: 'rgba(240,192,64,0.10)',
-  hovertemplate: '<b>%{x}</b><br>%{y:,.0f} CHF/oz<extra>2026 YTD</extra>'
+  hovertemplate: '<b>%{x}</b><br>%{y:,.0f} CHF/oz  (%{customdata:,.0f} CHF/kg)<extra>2026 YTD</extra>',
+  customdata: prices2026.map(p => p * OZ_TO_KG)
 };
-const traceVol = {
-  x: rvDates, y: rvVols, name: '20-Tage Vola (ann., rechte Achse)',
-  type: 'scatter', mode: 'lines', yaxis: 'y2',
-  line: { color: '#e05555', width: 1.5, dash: 'dot' },
-  hovertemplate: '<b>%{x}</b><br>Vola: %{y:.1f}%<extra></extra>'
+
+// Ghost trace on y2 to drive the CHF/kg axis scale
+const allDates  = [...dates2025, ...dates2026];
+const allPrices = [...prices2025, ...prices2026];
+const ghostKg = {
+  x: allDates, y: allPrices.map(p => p * OZ_TO_KG),
+  name: 'CHF/kg', yaxis: 'y2',
+  type: 'scatter', mode: 'lines',
+  line: { color: 'rgba(0,0,0,0)', width: 0 },
+  hoverinfo: 'skip', showlegend: false
 };
 
 const layout = {
   paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
-  margin: { t: 10, b: 40, l: 70, r: 70 },
+  margin: { t: 10, b: 40, l: 80, r: 100 },
   height: 380,
   legend: { font: { color: '#a08040' }, bgcolor: 'transparent', orientation:'h', y:-0.15 },
   xaxis: { color:'#4a3a10', gridcolor:'#1c1600', tickfont:{color:'#7a6030'}, showgrid:false },
   yaxis: {
-    color:'#7a6030', gridcolor:'#1c1600', tickfont:{color:'#7a6030'},
-    tickformat:',.0f', ticksuffix:' CHF', title:'CHF/oz', titlefont:{color:'#7a6030'}
+    color:'#c89020', gridcolor:'#1c1600', tickfont:{color:'#c89020'},
+    tickformat:',.0f', ticksuffix:' CHF', title:'CHF / Unze', titlefont:{color:'#c89020'}
   },
   yaxis2: {
-    overlaying:'y', side:'right', color:'#e05555',
-    tickfont:{color:'#e05555'}, ticksuffix:'%', title:'Vola (ann.)',
-    titlefont:{color:'#e05555'}, range:[0, 120]
+    overlaying:'y', side:'right', color:'#a08040',
+    tickfont:{color:'#a08040'}, tickformat:',.0f', ticksuffix:' CHF',
+    title:'CHF / Kilogramm', titlefont:{color:'#a08040'}
   },
   shapes: [{
     type:'line', x0:'2026-01-01', x1:'2026-01-01',
@@ -287,7 +278,7 @@ const layout = {
   }]
 };
 
-Plotly.newPlot('chart-price', [trace2025, trace2026, traceVol], layout, {displayModeBar:false, responsive:true});
+Plotly.newPlot('chart-price', [trace2025, trace2026, ghostKg], layout, {displayModeBar:false, responsive:true});
 </script>
 </body>
 </html>
