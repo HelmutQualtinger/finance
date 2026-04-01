@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vermögensübersicht</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f1a;
+      color: #e0e0f0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #c8c8f0;
+    }
+
+    header .date {
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      color: #7070a0;
+    }
+
+    /* KPI row */
+    .kpi-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+      background: #16162a;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 1rem 1.8rem;
+      text-align: center;
+      min-width: 180px;
+      flex: 1 1 180px;
+      max-width: 260px;
+    }
+
+    .kpi-card .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6060a0;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-card .value {
+      font-size: 1.45rem;
+      font-weight: 600;
+      color: #a8a8e8;
+    }
+
+    .kpi-card .value.total {
+      color: #7eb8f7;
+      font-size: 1.65rem;
+    }
+
+    /* Chart grid */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: #13132a;
+      border: 1px solid #22224a;
+      border-radius: 12px;
+      padding: 1rem 0.75rem 0.5rem;
+      overflow: hidden;
+    }
+
+    .chart-card h2 {
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6060a0;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .bar-card {
+      grid-column: span 1;
+    }
+
+    .plotly-chart {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Vermögensübersicht</h1>
+  <div class="date">1. April 2026</div>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="label">Liquide Mittel</div>
+    <div class="value">1'561'040 CHF</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Immobilien</div>
+    <div class="value">2'202'140 CHF</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Total Vermögen</div>
+    <div class="value total">3'763'180 CHF</div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <h2>Gesamtallokation</h2>
+    <div id="donut-total" class="plotly-chart"></div>
+  </div>
+  <div class="chart-card bar-card">
+    <h2>Einzelpositionen</h2>
+    <div id="bar-positions" class="plotly-chart"></div>
+  </div>
+  <div class="chart-card">
+    <h2>Liquide Mittel — Aufschlüsselung</h2>
+    <div id="donut-liquid" class="plotly-chart"></div>
+  </div>
+</div>
+
+<script>
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const fmt = v => v.toLocaleString('de-CH').replace(/,/g, "'") + ' CHF';
+
+  const CATEGORY_COLORS = {
+    'Bankkonten CH':     '#4f8ef7',
+    'Gold / Wertanlagen':'#f0c040',
+    'Bankkonten DE':     '#50c8a0',
+    'Immobilien':        '#c060e0',
+  };
+
+  const positions = [
+    { name: 'Raiffeisen',       value: 486000,   category: 'Bankkonten CH'      },
+    { name: 'UBS',              value: 432000,   category: 'Bankkonten CH'      },
+    { name: 'Sogni d\'oro',     value: 482400,   category: 'Gold / Wertanlagen' },
+    { name: 'Pictet',           value: 53000,    category: 'Gold / Wertanlagen' },
+    { name: 'SSKM',             value: 56120,    category: 'Bankkonten DE'      },
+    { name: 'Sparda',           value: 51520,    category: 'Bankkonten DE'      },
+    { name: 'Immo München',     value: 602140,   category: 'Immobilien'         },
+    { name: 'Immo CH',          value: 1600000,  category: 'Immobilien'         },
+  ];
+
+  // sorted descending for bar chart
+  const sorted = [...positions].sort((a, b) => a.value - b.value);
+
+  // ── Shared layout base ────────────────────────────────────────────────────
+  const baseLayout = {
+    paper_bgcolor: 'transparent',
+    plot_bgcolor:  'transparent',
+    font: { family: "'Segoe UI', system-ui, sans-serif", color: '#a0a0c8', size: 12 },
+    margin: { t: 10, b: 10, l: 10, r: 10 },
+    showlegend: true,
+    legend: {
+      font: { size: 11, color: '#8080b0' },
+      bgcolor: 'transparent',
+      borderwidth: 0,
+      orientation: 'h',
+      x: 0.5,
+      xanchor: 'center',
+      y: -0.08,
+    },
+  };
+
+  const config = { responsive: true, displayModeBar: false };
+
+  // ── 1. Total allocation donut ─────────────────────────────────────────────
+  Plotly.newPlot('donut-total', [{
+    type: 'pie',
+    hole: 0.54,
+    labels: ['Liquide Mittel', 'Immobilien'],
+    values: [1561040, 2202140],
+    marker: {
+      colors: ['#4f8ef7', '#c060e0'],
+      line: { color: '#0f0f1a', width: 2 },
+    },
+    textinfo: 'label+percent',
+    hovertemplate: '<b>%{label}</b><br>%{customdata}<extra></extra>',
+    customdata: [fmt(1561040), fmt(2202140)],
+    textfont: { size: 12, color: '#d0d0f0' },
+    insidetextorientation: 'radial',
+  }], {
+    ...baseLayout,
+    height: 340,
+    annotations: [{
+      text: '3\'763\'180<br><span style="font-size:10px;fill:#7070a0">CHF Total</span>',
+      x: 0.5, y: 0.5,
+      xref: 'paper', yref: 'paper',
+      showarrow: false,
+      font: { size: 14, color: '#c0c0e8' },
+      align: 'center',
+    }],
+  }, config);
+
+  // ── 2. Horizontal bar chart ───────────────────────────────────────────────
+  Plotly.newPlot('bar-positions', [{
+    type: 'bar',
+    orientation: 'h',
+    x: sorted.map(p => p.value),
+    y: sorted.map(p => p.name),
+    marker: {
+      color: sorted.map(p => CATEGORY_COLORS[p.category]),
+      line: { color: '#0f0f1a', width: 1 },
+    },
+    text: sorted.map(p => fmt(p.value)),
+    textposition: 'outside',
+    textfont: { size: 11, color: '#9090c8' },
+    cliponaxis: false,
+    hovertemplate: '<b>%{y}</b><br>%{text}<extra></extra>',
+  }], {
+    ...baseLayout,
+    height: 340,
+    margin: { t: 10, b: 30, l: 105, r: 120 },
+    showlegend: false,
+    xaxis: {
+      showgrid: true,
+      gridcolor: '#1e1e38',
+      gridwidth: 1,
+      zeroline: false,
+      showticklabels: false,
+      color: '#5050808',
+    },
+    yaxis: {
+      showgrid: false,
+      zeroline: false,
+      tickfont: { size: 12, color: '#a0a0c8' },
+      color: '#5050808',
+    },
+  }, config);
+
+  // ── 3. Liquide Mittel donut ───────────────────────────────────────────────
+  const liquid = positions.filter(p => p.category !== 'Immobilien');
+  Plotly.newPlot('donut-liquid', [{
+    type: 'pie',
+    hole: 0.54,
+    labels: liquid.map(p => p.name),
+    values: liquid.map(p => p.value),
+    marker: {
+      colors: liquid.map(p => CATEGORY_COLORS[p.category]),
+      line: { color: '#0f0f1a', width: 2 },
+    },
+    textinfo: 'label+percent',
+    hovertemplate: '<b>%{label}</b><br>%{customdata}<extra></extra>',
+    customdata: liquid.map(p => fmt(p.value)),
+    textfont: { size: 11, color: '#d0d0f0' },
+    insidetextorientation: 'radial',
+  }], {
+    ...baseLayout,
+    height: 340,
+    annotations: [{
+      text: '1\'561\'040<br><span style="font-size:10px">CHF</span>',
+      x: 0.5, y: 0.5,
+      xref: 'paper', yref: 'paper',
+      showarrow: false,
+      font: { size: 14, color: '#c0c0e8' },
+      align: 'center',
+    }],
+    legend: {
+      ...baseLayout.legend,
+      font: { size: 10, color: '#8080b0' },
+    },
+  }, config);
+</script>
+
+</body>
+</html>
