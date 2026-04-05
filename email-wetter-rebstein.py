@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Wettervorhersage Wien — 72h (3h-Intervalle) + 14 Tage
+Wettervorhersage Rebstein SG — 72h (3h-Intervalle) + 14 Tage
 Speichert als Gmail-Entwurf via IMAP. Kein automatischer Versand.
 
-Verwendung: python3 email-wetter-wien.py
+Verwendung: python3 email-wetter-rebstein.py
 """
 
 import imaplib
@@ -39,19 +39,20 @@ def _load_env():
 _env = _load_env()
 
 # ── Konfiguration ────────────────────────────────────────────────────────────
-GMAIL_USER   = _env["GMAIL_USER"]
-GMAIL_PWD    = _env["GMAIL_PWD"]
-TO           = "christian.diry@chello.at"
-SUBJECT      = "🌦️ Wettervorhersage Wien – 72h und 14 Tage"
-LAT, LON     = 48.2082, 16.3738
-TIMEZONE     = "Europe/Vienna"
-BANNER_URL   = "https://upload.wikimedia.org/wikipedia/commons/1/15/Wien_U-Bahn-Station_Pilgramgasse.jpg"
-BANNER_LOCAL = os.path.join(os.path.dirname(__file__), "wien_banner.jpg")
+GMAIL_USER  = _env["GMAIL_USER"]
+GMAIL_PWD   = _env["GMAIL_PWD"]
+TO          = "REDACTED"
+SUBJECT     = "🌦️ Wettervorhersage Rebstein SG – 72h und 14 Tage"
+LAT, LON    = 47.4, 9.57
+TIMEZONE    = "Europe/Zurich"
+BANNER_URL  = "https://chm-images-prd.forward-publishing.io/gemeinden/rebstein-9445.jpg?width=1260&fit=crop"
+BANNER_LOCAL = os.path.join(os.path.dirname(__file__), "rebstein_banner.jpg")
+
 
 # ── Farben ───────────────────────────────────────────────────────────────────
 C = {
     "bg":     "#0d1117", "card":   "#161b22", "card2":  "#1c2230",
-    "accent": "#8b1a1a", "accent2":"#d4a017", "hdr":    "#1a0a0a",
+    "accent": "#1a7340", "accent2":"#5ba832", "hdr":    "#0a1f12",
     "text":   "#c9d1d9", "muted":  "#8b949e", "border": "#30363d",
     "hot":    "#e55c2f", "warm":   "#e8a020", "cool":   "#4da6ff",
     "cold":   "#8ac4ff",
@@ -69,7 +70,7 @@ def curl_json(url):
     return json.loads(result.stdout)
 
 def fetch_weather():
-    base   = "https://api.open-meteo.com/v1/forecast"
+    base = "https://api.open-meteo.com/v1/forecast"
     h_vars = "temperature_2m,precipitation,weathercode,windspeed_10m,winddirection_10m"
     d_vars = "temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max,winddirection_10m_dominant"
 
@@ -86,11 +87,12 @@ def fetch_weather():
 
 # ── 2. Banner laden (lokal gespeichert, Fallback: Download) ─────────────────
 def load_banner():
+    """Lädt das Banner-Bild. Zuerst lokal, dann Download vom Original-URL."""
     if os.path.exists(BANNER_LOCAL) and os.path.getsize(BANNER_LOCAL) > 10000:
         print(f"🖼️  Banner geladen: {BANNER_LOCAL}")
         with open(BANNER_LOCAL, "rb") as f:
             return f.read()
-    print("🖼️  Banner nicht lokal gefunden, lade von URL...")
+    print(f"🖼️  Banner nicht lokal gefunden, lade von URL...")
     result = subprocess.run(
         ["curl", "-sL", "--max-time", "30",
          "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -165,8 +167,9 @@ def fmt_tag_kurz(date_str):
 def fmt_tag_lang(date_str, idx):
     d = datetime.strptime(date_str, "%Y-%m-%d")
     wd = d.weekday()
+    name = WOCHENTAGE_LANG[wd]
     extra = {0: " — heute", 1: " — morgen", 2: " — übermorgen"}.get(idx, "")
-    return f"{WOCHENTAGE_LANG[wd]}, {d.day}. {MONATE[d.month]} {d.year}{extra}"
+    return f"{name}, {d.day}. {MONATE[d.month]} {d.year}{extra}"
 
 # ── Tabelle 72h: ein Tag (8 Spalten alle 3h) ─────────────────────────────────
 def table_72h_tag(hourly, day_idx):
@@ -181,10 +184,10 @@ def table_72h_tag(hourly, day_idx):
 
     c_uhr, c_wet, c_tmp, c_nds, c_wnd, c_wri = [], [], [], [], [], []
     for i in slots:
-        uhr     = hourly["time"][i][11:16]
-        emo, _  = wcode_info(hourly["weathercode"][i])
-        tc      = temp_color(hourly["temperature_2m"][i])
-        wa      = wind_arrow(hourly["winddirection_10m"][i])
+        uhr  = hourly["time"][i][11:16]
+        emo, _ = wcode_info(hourly["weathercode"][i])
+        tc   = temp_color(hourly["temperature_2m"][i])
+        wa   = wind_arrow(hourly["winddirection_10m"][i])
         td = 'style="text-align:center;padding:6px 8px'
         c_uhr.append(f'<td {td};color:{C["muted"]};font-size:13px;white-space:nowrap">{uhr}</td>')
         c_wet.append(f'<td {td};font-size:20px">{emo}</td>')
@@ -205,11 +208,11 @@ def table_72h_tag(hourly, day_idx):
   <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;background:{C['card']};border:1px solid {C['border']};border-radius:8px;overflow:hidden">
     <thead><tr style="background:{C['accent']}"><th {th_s}>Uhrzeit</th>{to_th(c_uhr)}</tr></thead>
     <tbody>
-      {row("Wetter",     c_wet, C['card2'])}
-      {row("Temp.",      c_tmp, C['card'])}
-      {row("Niedersch.", c_nds, C['card2'])}
-      {row("Wind",       c_wnd, C['card'])}
-      {row("Richtung",   c_wri, C['card2'])}
+      {row("Wetter",    c_wet, C['card2'])}
+      {row("Temp.",     c_tmp, C['card'])}
+      {row("Niedersch.",c_nds, C['card2'])}
+      {row("Wind",      c_wnd, C['card'])}
+      {row("Richtung",  c_wri, C['card2'])}
     </tbody>
   </table>
 </div>"""
@@ -256,12 +259,12 @@ def table_14tage_woche(daily, week_idx):
   <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;background:{C['card']};border:1px solid {C['border']};border-radius:8px;overflow:hidden">
     <thead><tr style="background:{C['hdr']}"><th {th_s}>Tag</th>{to_th(c_tag)}</tr></thead>
     <tbody>
-      {row("Wetter",    c_wet, C['card2'])}
-      {row("Höchst",    c_hoc, C['card'])}
-      {row("Tief",      c_tie, C['card2'])}
-      {row("Niedersch.",c_nds, C['card'])}
-      {row("Wind max",  c_wnd, C['card2'])}
-      {row("Richtung",  c_wri, C['card'])}
+      {row("Wetter",   c_wet, C['card2'])}
+      {row("Höchst",   c_hoc, C['card'])}
+      {row("Tief",     c_tie, C['card2'])}
+      {row("Niedersch.",c_nds,C['card'])}
+      {row("Wind max", c_wnd, C['card2'])}
+      {row("Richtung", c_wri, C['card'])}
     </tbody>
   </table>
 </div>"""
@@ -276,16 +279,16 @@ def build_html(hourly, daily, banner_src):
 
     return f"""<!DOCTYPE html>
 <html lang="de">
-<head><meta charset="UTF-8"><title>Wettervorhersage Wien</title></head>
+<head><meta charset="UTF-8"><title>Wettervorhersage Rebstein SG</title></head>
 <body style="margin:0;padding:0;background:{C['bg']};font-family:Arial,Helvetica,sans-serif;color:{C['text']}">
 <div style="max-width:860px;margin:0 auto;padding:20px 16px">
 
   <!-- BANNER -->
   <div style="border-radius:12px 12px 0 0;overflow:hidden;position:relative;line-height:0">
-    <img src="{banner_src}" alt="Wien – U-Bahn-Station Pilgramgasse" width="100%"
-         style="display:block;width:100%;height:210px;object-fit:cover;object-position:center 55%">
-    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.80));padding:16px 20px">
-      <div style="font-size:24px;font-weight:800;color:#fff">🏛️ Wien · Österreich</div>
+    <img src="{banner_src}" alt="Rebstein SG" width="100%"
+         style="display:block;width:100%;height:210px;object-fit:cover;object-position:center 50%">
+    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.78));padding:16px 20px">
+      <div style="font-size:24px;font-weight:800;color:#fff">🌿 Rebstein SG · Rheintal</div>
       <div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:3px">
         Wettervorhersage {d0.day}. {MONATE[d0.month]}–{d13.day}. {MONATE[d13.month]} {d0.year}
       </div>
@@ -295,9 +298,9 @@ def build_html(hourly, daily, banner_src):
   <!-- HEADER-LEISTE -->
   <div style="background:{C['hdr']};border:1px solid {C['border']};border-top:3px solid {C['accent']};border-radius:0 0 12px 12px;padding:16px 24px;margin-bottom:28px">
     <div style="font-size:14px;color:{C['muted']};line-height:1.8">
-      <strong style="color:{C['text']}">Standort:</strong> Wien, Österreich &nbsp;·&nbsp;
-      48.2082°N, 16.3738°O &nbsp;·&nbsp; ~170 m ü.&#8239;M.<br>
-      <strong style="color:{C['text']}">Zeitzone:</strong> Europe/Vienna (MESZ, UTC+2) &nbsp;·&nbsp;
+      <strong style="color:{C['text']}">Standort:</strong> Rebstein SG, Kanton St. Gallen, Schweiz &nbsp;·&nbsp;
+      47.4°N, 9.57°O &nbsp;·&nbsp; ~430 m ü.&#8239;M.<br>
+      <strong style="color:{C['text']}">Zeitzone:</strong> Europe/Zurich (MESZ, UTC+2) &nbsp;·&nbsp;
       <strong style="color:{C['text']}">Quelle:</strong> open-meteo.com &nbsp;·&nbsp;
       <strong style="color:{C['text']}">Erstellt:</strong> {now}
     </div>
@@ -333,7 +336,7 @@ def build_html(hourly, daily, banner_src):
 
   <!-- FOOTER -->
   <div style="text-align:center;padding:16px;font-size:12px;color:{C['muted']};border-top:1px solid {C['border']}">
-    Wien · Österreich 🇦🇹 · Daten: open-meteo.com
+    Rebstein SG · Schweiz 🇨🇭 · Daten: open-meteo.com
   </div>
 
 </div>
@@ -390,14 +393,14 @@ if __name__ == "__main__":
     banner_bytes = load_banner()
 
     # 3. HTML aufbauen
-    banner_src = "cid:banner_wien" if banner_bytes else ""
+    banner_src = "cid:banner_rebstein" if banner_bytes else ""
     html = build_html(hourly, daily, banner_src)
 
-    # 4. Lokale Vorschau
-    preview_path = "/tmp/wetter_wien_preview.html"
+    # 4. Lokale Vorschau (data-URI damit Bild im Browser sichtbar ist)
+    preview_path = "/tmp/wetter_rebstein_preview.html"
     if banner_bytes:
         b64 = base64.b64encode(banner_bytes).decode("ascii")
-        html_preview = html.replace("cid:banner_wien", f"data:image/jpeg;base64,{b64}")
+        html_preview = html.replace("cid:banner_rebstein", f"data:image/jpeg;base64,{b64}")
     else:
         html_preview = html
     with open(preview_path, "w", encoding="utf-8") as f:
@@ -406,7 +409,7 @@ if __name__ == "__main__":
     # 5. MIME-Nachricht aufbauen
     msg_root = MIMEMultipart("related")
     msg_root["Subject"] = SUBJECT
-    msg_root["From"]    = f"Wetter Wien <{GMAIL_USER}>"
+    msg_root["From"]    = f"Wetter Rebstein <{GMAIL_USER}>"
     msg_root["To"]      = TO
 
     msg_alt = MIMEMultipart("alternative")
@@ -415,8 +418,8 @@ if __name__ == "__main__":
 
     if banner_bytes:
         img = MIMEImage(banner_bytes, _subtype="jpeg")
-        img.add_header("Content-ID", "<banner_wien>")
-        img.add_header("Content-Disposition", "inline", filename="wien.jpg")
+        img.add_header("Content-ID", "<banner_rebstein>")
+        img.add_header("Content-Disposition", "inline", filename="rebstein.jpg")
         msg_root.attach(img)
 
     msg_bytes = msg_root.as_bytes()

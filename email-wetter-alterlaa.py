@@ -357,9 +357,11 @@ def build_html(hourly, daily, banner_src):
 </body>
 </html>"""
 
-# ── Gmail-Entwurf via IMAP speichern ─────────────────────────────────────────
+# ── Gmail-Entwurf via IMAP speichern → gibt direkten Draft-URL zurück ────────
 def gmail_entwurf_speichern(msg_bytes):
+    import re
     print("📥 Gmail-Entwurf via IMAP speichern...")
+    draft_url = "https://mail.google.com/mail/u/0/#drafts"
     with imaplib.IMAP4_SSL("imap.gmail.com", 993) as imap:
         imap.login(GMAIL_USER, GMAIL_PWD)
         _, folders = imap.list()
@@ -373,10 +375,27 @@ def gmail_entwurf_speichern(msg_bytes):
         if not drafts_folder:
             drafts_folder = "[Google Mail]/Entwürfe"
         print(f"   Ordner: {drafts_folder}")
-        imap.append(f'"{drafts_folder}"', "\\Draft",
-                    imaplib.Time2Internaldate(datetime.now(timezone.utc)),
-                    msg_bytes)
+        status, data = imap.append(
+            f'"{drafts_folder}"', "\\Draft",
+            imaplib.Time2Internaldate(datetime.now(timezone.utc)),
+            msg_bytes
+        )
+        # UID aus APPENDUID-Antwort lesen
+        if status == "OK" and data and data[0]:
+            resp = data[0].decode() if isinstance(data[0], bytes) else str(data[0])
+            m = re.search(r"APPENDUID \d+ (\d+)", resp)
+            if m:
+                uid = m.group(1)
+                imap.select(f'"{drafts_folder}"', readonly=True)
+                _, fetch_data = imap.uid("fetch", uid, "(X-GM-MSGID)")
+                if fetch_data and fetch_data[0]:
+                    fd = fetch_data[0].decode() if isinstance(fetch_data[0], bytes) else str(fetch_data[0])
+                    m2 = re.search(r"X-GM-MSGID (\d+)", fd)
+                    if m2:
+                        gm_id = hex(int(m2.group(1)))[2:]
+                        draft_url = f"https://mail.google.com/mail/u/0/#drafts/{gm_id}"
     print("✅ Entwurf gespeichert!")
+    return draft_url
 
 # ════════════════════════════════════════════════════════════════════════════
 #  MAIN
@@ -420,15 +439,10 @@ if __name__ == "__main__":
 
     msg_bytes = msg_root.as_bytes()
 
-    # 6. Gmail-Entwurf speichern
-    gmail_entwurf_speichern(msg_bytes)
+    # 6. Gmail-Entwurf speichern + direkten Draft-URL holen
+    draft_url = gmail_entwurf_speichern(msg_bytes)
 
-    # 7. Gmail-Entwürfe im Browser öffnen
-    gmail_url = (
-        "https://accounts.google.com/AccountChooser"
-        "?Email=qualcunodue%40gmail.com"
-        "&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F%23drafts"
-    )
-    subprocess.Popen(["open", gmail_url])
-    print(f"🌐 Gmail-Entwürfe geöffnet (qualcunodue@gmail.com)")
+    # 7. Direkt den Entwurf in Gmail öffnen
+    subprocess.Popen(["open", draft_url])
+    print(f"🌐 Gmail-Entwurf geöffnet: {draft_url}")
     print(f"📄 Vorschau: /tmp/wetter_alterlaa_preview.html")
