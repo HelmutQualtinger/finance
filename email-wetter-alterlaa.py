@@ -30,7 +30,7 @@ def _load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
-    for key in ("GMAIL_USER", "GMAIL_PWD"):
+    for key in ("GMAIL_USER", "GMAIL_PWD", "MAIL_ROLAND"):
         if key not in env:
             print(f"FEHLER: {key} fehlt in .env", file=sys.stderr)
             sys.exit(1)
@@ -41,7 +41,7 @@ _env = _load_env()
 # ── Konfiguration ────────────────────────────────────────────────────────────
 GMAIL_USER   = _env["GMAIL_USER"]
 GMAIL_PWD    = _env["GMAIL_PWD"]
-TO           = "REDACTED"
+TO           = _env["MAIL_ROLAND"]
 SUBJECT      = "🌦️ Frohe Ostern & Wettervorhersage Wien-Alterlaa – 72h und 14 Tage"
 LAT, LON     = 48.1500, 16.3167
 TIMEZONE     = "Europe/Vienna"

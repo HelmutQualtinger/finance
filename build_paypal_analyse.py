@@ -4,9 +4,25 @@
 import re
 import json
 import math
+import os
+import sys
 import pdfplumber
 from collections import defaultdict
 from datetime import datetime
+
+def _load_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return {}
+    env = {}
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1); env[k.strip()] = v.strip()
+    return env
+
+_env = _load_env()
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
@@ -575,7 +591,7 @@ def build_pdf():
 
     # Titelseite
     story.append(Paragraph("PayPal Kontoauszug Analyse", title_style))
-    story.append(Paragraph("01.04.2023 – 22.03.2026 | REDACTED", sub_style))
+    story.append(Paragraph(f"01.04.2023 – 22.03.2026 | {_env.get('MAIL_HARALD', '')}", sub_style))
     story.append(Spacer(1, 0.5*cm))
 
     # Gesamt-Übersicht

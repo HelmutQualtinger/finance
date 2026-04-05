@@ -27,7 +27,7 @@ def _load_env():
 _env = _load_env()
 USER = _env["GMAIL_USER"]
 PASS = _env["GMAIL_PWD"]
-TO   = "REDACTED"
+TO   = _env["MAIL_HARALD"]
 SUBJ = f"Wetterbericht Rebstein – {datetime.now().strftime('%d.%m.%Y')}"
 CID  = "rebstein_banner"
 
