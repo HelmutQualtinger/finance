@@ -4,13 +4,29 @@ Erstellt Gmail-Entwurf mit dem Wetterbericht via IMAP.
 Bild wird als inline CID-Attachment eingebettet (multipart/related),
 damit Gmail es korrekt anzeigt.
 """
-import imaplib, email.mime.multipart, email.mime.text, email.utils, re
+import imaplib, email.mime.multipart, email.mime.text, email.utils, re, os, sys
 from email.mime.image import MIMEImage
 from datetime import datetime
 
-# Credentials
-USER = "qualcunodue@gmail.com"
-PASS = "hvzxtoctcosodbrh"
+# ── .env laden ───────────────────────────────────────────────────────────────
+def _load_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        print(f"FEHLER: .env nicht gefunden: {env_path}", file=sys.stderr); sys.exit(1)
+    env = {}
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1); env[k.strip()] = v.strip()
+    for key in ("GMAIL_USER", "GMAIL_PWD"):
+        if key not in env:
+            print(f"FEHLER: {key} fehlt in .env", file=sys.stderr); sys.exit(1)
+    return env
+
+_env = _load_env()
+USER = _env["GMAIL_USER"]
+PASS = _env["GMAIL_PWD"]
 TO   = "REDACTED"
 SUBJ = f"Wetterbericht Rebstein – {datetime.now().strftime('%d.%m.%Y')}"
 CID  = "rebstein_banner"
